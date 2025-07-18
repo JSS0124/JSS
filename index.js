@@ -13,11 +13,11 @@ const vendorRoutes = require("./api/vendors");
 const uploadRoutes = require("./api/uploadexcel");
 
 // Mount routes
-app.use("/api/categories", categoryRoutes);
-app.use("/api/deliveries", deliveryRoutes);
-app.use("/api/delivery", deliverySingle);
-app.use("/api/vendors", vendorRoutes);
-app.use("/api/upload", uploadRoutes);
+app.use("/api/categories", require("./api/category"));
+app.use("/api/deliveries", require("./api/deliveries"));
+app.use("/api/delivery", require("./api/delivery"));
+app.use("/api/vendors", require("./api/vendors"));
+app.use("/api/upload", require("./api/uploadexcel"));
 
 // Export for Vercel
 module.exports = app;
