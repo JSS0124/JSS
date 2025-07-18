@@ -10,7 +10,7 @@ const categoryRoutes = require("./api/category");
 const deliveryRoutes = require("./api/deliveries");
 const deliverySingle = require("./api/delivery");
 const vendorRoutes = require("./api/vendors");
-const uploadRoutes = require("./api/uploadexcel");
+const uploadRoutes = require("./api/uploadExcel");
 
 app.use("/api/categories", categoryRoutes);
 app.use("/api/deliveries", deliveryRoutes);
