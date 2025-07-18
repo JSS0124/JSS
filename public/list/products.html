@@ -1,0 +1,18 @@
+<!-- /list/products.html -->
+<h1>Products</h1>
+<table id="productsTable">
+  <thead>
+    <tr><th>ID</th><th>Name</th><th>Category</th><th>Rate</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<script>
+fetch('/api/products') // ensure this route is available
+  .then(res => res.json())
+  .then(data => {
+    const tbody = document.querySelector('#productsTable tbody');
+    data.forEach(p => {
+      tbody.innerHTML += `<tr><td>${p.id}</td><td>${p.name}</td><td>${p.category_name || '-'}</td><td>${p.rate}</td></tr>`;
+    });
+  });
+</script>
