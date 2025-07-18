@@ -1,25 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const pool = require("../db");
+const pool = require("../db"); // assuming db.js exports your PostgreSQL pool
 
-// Add a new vendor
-router.post("/add", async (req, res) => {
-  const { name, contact } = req.body;
-  try {
-    await pool.query("INSERT INTO vendors (name, contact) VALUES ($1, $2)", [name, contact]);
-    res.status(200).json({ success: true });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// Optionally: get all vendors
+// GET all vendors
 router.get("/", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM vendors ORDER BY name ASC");
+    const result = await pool.query("SELECT * FROM vendors");
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ message: "Error fetching vendors" });
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
