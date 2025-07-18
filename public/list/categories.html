@@ -1,0 +1,18 @@
+<!-- /list/categories.html -->
+<h1>Categories</h1>
+<table id="categoriesTable">
+  <thead>
+    <tr><th>ID</th><th>Name</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<script>
+fetch('/api/categories')
+  .then(res => res.json())
+  .then(data => {
+    const tbody = document.querySelector('#categoriesTable tbody');
+    data.forEach(cat => {
+      tbody.innerHTML += `<tr><td>${cat.id}</td><td>${cat.name}</td></tr>`;
+    });
+  });
+</script>
