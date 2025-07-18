@@ -8,7 +8,7 @@ router.get("/", async (req, res) => {
     const result = await pool.query("SELECT * FROM vendors");
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
+    console.error("❌ Vendor Route Error:", err); // ADD THIS LINE
     res.status(500).json({ error: "Server error" });
   }
 });
