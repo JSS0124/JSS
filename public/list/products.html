@@ -2,163 +2,101 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Products</title>
+  <title>Categories</title>
   <style>
-    body { font-family: Arial; padding: 2rem; }
-    .form-group { margin-bottom: 1rem; }
-    input, select { padding: 0.5rem; width: 300px; margin-bottom: 0.5rem; display: block; }
-    button { padding: 0.5rem 1rem; margin-right: 0.5rem; }
-    table { width: 100%; margin-top: 2rem; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 0.5rem; }
-    th { background-color: #f4f4f4; }
+    body {
+      font-family: Arial;
+      padding: 2rem;
+    }
+    .input-group {
+      margin-bottom: 1rem;
+    }
+    .input-group input {
+      padding: 0.5rem;
+      width: 300px;
+      margin-right: 1rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      margin-right: 0.5rem;
+    }
+    table {
+      width: 100%;
+      margin-top: 2rem;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+    }
+    th {
+      background: #f4f4f4;
+    }
   </style>
 </head>
 <body>
-  <h2>Product Management</h2>
+  <h2>Category List</h2>
 
-  <div class="form-group">
-    <input type="text" id="name" placeholder="Product Name" />
-    <label>Category</label>
-<select id="product-category" class="form-control"></select>
-    <input type="number" id="price" placeholder="Price" />
-    <input type="number" id="price1" placeholder="Price 1" />
-    <input type="number" id="price2" placeholder="Price 2" />
-    <input type="number" id="price3" placeholder="Price 3" />
-  </div>
-  <div class="form-group">
-    <button onclick="saveProduct()">Save</button>
+  <div class="input-group">
+    <input type="text" id="categoryName" placeholder="Enter category name" />
+    <button onclick="saveCategory()">Save</button>
     <button onclick="resetForm()">Cancel</button>
   </div>
 
   <table>
     <thead>
       <tr>
-        <th>Code</th>
+        <th>Code (ID)</th>
         <th>Name</th>
-        <th>Category</th>
-        <th>Price</th>
-        <th>Price 1</th>
-        <th>Price 2</th>
-        <th>Price 3</th>
         <th>Action</th>
       </tr>
     </thead>
-    <tbody id="productTable"></tbody>
+    <tbody id="categoryTable"></tbody>
   </table>
 
   <script>
-// Call this when the page loads
-async function loadCategories() {
-  try {
-    const response = await fetch('/api/categories');
-    const categories = await response.json();
-    const select = document.getElementById('product-category');
-    select.innerHTML = '<option value="">Select Category</option>';
-    categories.forEach(cat => {
-      const option = document.createElement('option');
-      option.value = cat.id;
-      option.textContent = cat.name;
-      select.appendChild(option);
-    });
-  } catch (error) {
-    console.error('Failed to load categories', error);
-  }
-}
+    async function fetchCategories() {
+      const res = await fetch("/api/categories");
+      const data = await res.json();
+      const table = document.getElementById("categoryTable");
+      table.innerHTML = "";
+      data.forEach((cat) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${cat.id}</td>
+          <td>${cat.name}</td>
+          <td><button onclick="deleteCategory(${cat.id})">Delete</button></td>
+        `;
+        table.appendChild(row);
+      });
+    }
 
-// Make sure to call it
-window.addEventListener('DOMContentLoaded', () => {
-  loadCategories();
-  loadProducts(); // your existing product loader
-});
-    async function fetchProducts() {
-      try {
-        const res = await fetch("/api/products");
-        const products = await res.json();
-        const table = document.getElementById("productTable");
-        table.innerHTML = "";
-        products.forEach(p => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${p.id}</td>
-            <td>${p.name}</td>
-            <td>${p.category_name || "-"}</td>
-            <td>${p.price || "-"}</td>
-            <td>${p.price1 || "-"}</td>
-            <td>${p.price2 || "-"}</td>
-            <td>${p.price3 || "-"}</td>
-            <td><button onclick="deleteProduct(${p.id})">Delete</button></td>
-          `;
-          table.appendChild(row);
-        });
-      } catch (err) {
-        console.error("Error loading products", err);
+    async function saveCategory() {
+      const name = document.getElementById("categoryName").value.trim();
+      if (!name) return alert("Category name required");
+      const res = await fetch("/api/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (res.ok) {
+        resetForm();
+        fetchCategories();
       }
     }
 
-    async function saveProduct() {
-      const name = document.getElementById("name").value.trim();
-      const category_id = document.getElementById("categorySelect").value;
-      const price = document.getElementById("price").value;
-      const price1 = document.getElementById("price1").value;
-      const price2 = document.getElementById("price2").value;
-      const price3 = document.getElementById("price3").value;
-
-      if (!name || !category_id) return alert("Please enter name and select a category");
-
-      const body = {
-        name,
-        category_id: parseInt(category_id),
-        price: price ? parseFloat(price) : null,
-        price1: price1 ? parseFloat(price1) : null,
-        price2: price2 ? parseFloat(price2) : null,
-        price3: price3 ? parseFloat(price3) : null
-      };
-
-      try {
-        const res = await fetch("/api/products", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body)
-        });
-
-        if (res.ok) {
-          resetForm();
-          fetchProducts();
-        } else {
-          const err = await res.text();
-          alert("Failed to save product: " + err);
-        }
-      } catch (error) {
-        console.error("Save failed", error);
-      }
-    }
-
-    async function deleteProduct(id) {
-      if (!confirm("Are you sure to delete this product?")) return;
-      try {
-        const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
-        if (res.ok) {
-          fetchProducts();
-        } else {
-          alert("Failed to delete");
-        }
-      } catch (err) {
-        console.error("Delete failed", err);
-      }
+    async function deleteCategory(id) {
+      if (!confirm("Delete this category?")) return;
+      await fetch(`/api/categories/${id}`, { method: "DELETE" });
+      fetchCategories();
     }
 
     function resetForm() {
-      document.getElementById("name").value = "";
-      document.getElementById("categorySelect").value = "";
-      document.getElementById("price").value = "";
-      document.getElementById("price1").value = "";
-      document.getElementById("price2").value = "";
-      document.getElementById("price3").value = "";
+      document.getElementById("categoryName").value = "";
     }
 
-    // Initialize
+    // Load categories on page load
     fetchCategories();
-    fetchProducts();
   </script>
 </body>
 </html>
