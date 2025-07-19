@@ -1,10 +1,11 @@
-const { Pool } = require("pg");
+// lib/db.js
+import { Pool } from 'pg';
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // ✅ from Neon
+  connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false, // required for Neon SSL
-  },
+    rejectUnauthorized: false
+  }
 });
 
-module.exports = pool;
+export default pool;
