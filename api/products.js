@@ -2,32 +2,43 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 
-// Get all products with category name
+// GET all products
 router.get("/", async (req, res) => {
-  const result = await pool.query(`
-    SELECT p.*, c.name AS category_name
-    FROM products p
-    JOIN categories c ON p.category_id = c.id
-    ORDER BY p.id ASC
-  `);
-  res.json(result.rows);
+  try {
+    const result = await pool.query("SELECT * FROM products");
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
 });
 
-// Add new product
+// POST new product
 router.post("/", async (req, res) => {
-  const { name, category_id, price, price1, price2, price3 } = req.body;
-  const result = await pool.query(
-    `INSERT INTO products (name, category_id, price, price1, price2, price3)
-     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-    [name, category_id, price, price1, price2, price3]
-  );
-  res.json(result.rows[0]);
+  try {
+    const { name, category, price, price1, price2, price3 } = req.body;
+    const result = await pool.query(
+      `INSERT INTO products (name, category, price, price1, price2, price3)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [name, category, price, price1, price2, price3]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
 });
 
-// Delete product
+// DELETE product
 router.delete("/:id", async (req, res) => {
-  await pool.query("DELETE FROM products WHERE id = $1", [req.params.id]);
-  res.json({ success: true });
+  try {
+    const { id } = req.params;
+    await pool.query("DELETE FROM products WHERE id = $1", [id]);
+    res.status(204).send();
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
 });
 
 module.exports = router;
