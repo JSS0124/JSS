@@ -2,106 +2,77 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Categories</title>
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 2rem;
-      background: #f4f4f4;
-    }
-    .container {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 8px;
-      max-width: 600px;
-      margin: auto;
-    }
-    h1 {
-      margin-bottom: 1rem;
-    }
-    input {
-      width: 100%;
-      padding: 0.5rem;
-      margin-bottom: 1rem;
-      font-size: 1rem;
-    }
-    button {
-      padding: 0.5rem 1rem;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    table {
-      width: 100%;
-      margin-top: 2rem;
-      border-collapse: collapse;
-    }
-    table th, table td {
-      border: 1px solid #ddd;
-      padding: 0.5rem;
-      text-align: left;
-    }
+    body { font-family: Arial; padding: 20px; }
+    input, button { padding: 8px; margin: 5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+    th { background-color: #f4f4f4; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Manage Categories</h1>
-
-    <input type="text" id="categoryName" placeholder="Enter new category name" />
-    <button onclick="saveCategory()">Save Category</button>
-
-    <table id="categoryTable">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Categories will be loaded here -->
-      </tbody>
-    </table>
-  </div>
+  <h1>Categories</h1>
+  <input type="text" id="categoryName" placeholder="Enter category name" />
+  <button onclick="addCategory()">Add Category</button>
+  <p id="message" style="color:red;"></p>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Code</th>
+        <th>Name</th>
+      </tr>
+    </thead>
+    <tbody id="categoryList"></tbody>
+  </table>
 
   <script>
     async function fetchCategories() {
-      const res = await fetch("/api/Category");
-      const data = await res.json();
-
-      const tableBody = document.querySelector("#categoryTable tbody");
-      tableBody.innerHTML = "";
-
-      data.forEach(cat => {
-        const row = document.createElement("tr");
-        row.innerHTML = `<td>${cat.id}</td><td>${cat.name}</td>`;
-        tableBody.appendChild(row);
-      });
+      try {
+        const res = await fetch('/api/categories');
+        const data = await res.json();
+        const list = document.getElementById('categoryList');
+        list.innerHTML = "";
+        data.forEach(cat => {
+          list.innerHTML += `<tr><td>${cat.id}</td><td>${cat.code}</td><td>${cat.name}</td></tr>`;
+        });
+      } catch (err) {
+        console.error(err);
+        document.getElementById("message").innerText = "Failed to load categories.";
+      }
     }
 
-    async function saveCategory() {
-      const name = document.getElementById("categoryName").value.trim();
-
-      if (!name) {
-        alert("Please enter a category name.");
+    async function addCategory() {
+      const name = document.getElementById('categoryName').value;
+      if (!name.trim()) {
+        document.getElementById("message").innerText = "Please enter category name";
         return;
       }
 
-      const res = await fetch("/api/Category", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name })
-      });
+      try {
+        const res = await fetch('/api/categories', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ name })
+        });
 
-      if (res.ok) {
-        alert("Category saved.");
-        document.getElementById("categoryName").value = "";
-        fetchCategories();
-      } else {
-        const errorText = await res.text();
-        alert("Failed to save category: " + errorText);
+        const result = await res.json();
+
+        if (res.ok) {
+          document.getElementById("message").style.color = "green";
+          document.getElementById("message").innerText = result.message;
+          document.getElementById("categoryName").value = "";
+          fetchCategories(); // refresh table
+        } else {
+          document.getElementById("message").style.color = "red";
+          document.getElementById("message").innerText = result.error || "Failed to save";
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById("message").innerText = "Error saving category.";
       }
     }
 
