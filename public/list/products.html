@@ -46,23 +46,29 @@
   </table>
 
   <script>
-    async function fetchCategories() {
-      try {
-        const res = await fetch("/api/categories");
-        const categories = await res.json();
-        const select = document.getElementById("categorySelect");
-        select.innerHTML = '<option value="">Select Category</option>';
-        categories.forEach(cat => {
-          const option = document.createElement("option");
-          option.value = cat.id;
-          option.textContent = cat.name;
-          select.appendChild(option);
-        });
-      } catch (err) {
-        console.error("Error loading categories", err);
-      }
-    }
+// Call this when the page loads
+async function loadCategories() {
+  try {
+    const response = await fetch('/api/categories');
+    const categories = await response.json();
+    const select = document.getElementById('product-category');
+    select.innerHTML = '<option value="">Select Category</option>';
+    categories.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat.id;
+      option.textContent = cat.name;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Failed to load categories', error);
+  }
+}
 
+// Make sure to call it
+window.addEventListener('DOMContentLoaded', () => {
+  loadCategories();
+  loadProducts(); // your existing product loader
+});
     async function fetchProducts() {
       try {
         const res = await fetch("/api/products");
