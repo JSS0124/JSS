@@ -1,28 +1,34 @@
-const express = require("express");
-const router = express.Router();
-const pool = require("../db");
+// api/categories.js
+import pool from '../lib/db';
 
-// GET all categories
-router.get("/", async (req, res) => {
-  const result = await pool.query("SELECT * FROM categories ORDER BY id ASC");
-  res.json(result.rows);
-});
+export default async function handler(req, res) {
+  if (req.method === 'GET') {
+    try {
+      const result = await pool.query('SELECT * FROM categories ORDER BY id DESC');
+      return res.status(200).json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Failed to fetch categories' });
+    }
+  }
 
-// POST new category
-router.post("/", async (req, res) => {
-  const { name } = req.body;
-  const result = await pool.query(
-    "INSERT INTO categories (name) VALUES ($1) RETURNING *",
-    [name]
-  );
-  res.json(result.rows[0]);
-});
+  if (req.method === 'POST') {
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required' });
+    }
 
-// DELETE category
-router.delete("/:id", async (req, res) => {
-  const { id } = req.params;
-  await pool.query("DELETE FROM categories WHERE id = $1", [id]);
-  res.json({ success: true });
-});
+    try {
+      const result = await pool.query(
+        'INSERT INTO categories (name) VALUES ($1) RETURNING *',
+        [name]
+      );
+      return res.status(201).json(result.rows[0]);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Failed to save category' });
+    }
+  }
 
-module.exports = router;
+  return res.status(405).json({ error: 'Method Not Allowed' });
+}
