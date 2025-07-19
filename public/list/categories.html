@@ -1,18 +1,102 @@
-<!-- /list/categories.html -->
-<h1>Categories</h1>
-<table id="categoriesTable">
-  <thead>
-    <tr><th>ID</th><th>Name</th></tr>
-  </thead>
-  <tbody></tbody>
-</table>
-<script>
-fetch('/api/categories')
-  .then(res => res.json())
-  .then(data => {
-    const tbody = document.querySelector('#categoriesTable tbody');
-    data.forEach(cat => {
-      tbody.innerHTML += `<tr><td>${cat.id}</td><td>${cat.name}</td></tr>`;
-    });
-  });
-</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Categories</title>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 2rem;
+    }
+    .input-group {
+      margin-bottom: 1rem;
+    }
+    .input-group input {
+      padding: 0.5rem;
+      width: 300px;
+      margin-right: 1rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      margin-right: 0.5rem;
+    }
+    table {
+      width: 100%;
+      margin-top: 2rem;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+    }
+    th {
+      background: #f4f4f4;
+    }
+  </style>
+</head>
+<body>
+  <h2>Category List</h2>
+
+  <div class="input-group">
+    <input type="text" id="categoryName" placeholder="Enter category name" />
+    <button onclick="saveCategory()">Save</button>
+    <button onclick="resetForm()">Cancel</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Code (ID)</th>
+        <th>Name</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="categoryTable"></tbody>
+  </table>
+
+  <script>
+    async function fetchCategories() {
+      const res = await fetch("/api/categories");
+      const data = await res.json();
+      const table = document.getElementById("categoryTable");
+      table.innerHTML = "";
+      data.forEach((cat) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${cat.id}</td>
+          <td>${cat.name}</td>
+          <td><button onclick="deleteCategory(${cat.id})">Delete</button></td>
+        `;
+        table.appendChild(row);
+      });
+    }
+
+    async function saveCategory() {
+      const name = document.getElementById("categoryName").value.trim();
+      if (!name) return alert("Category name required");
+      const res = await fetch("/api/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (res.ok) {
+        resetForm();
+        fetchCategories();
+      }
+    }
+
+    async function deleteCategory(id) {
+      if (!confirm("Delete this category?")) return;
+      await fetch(`/api/categories/${id}`, { method: "DELETE" });
+      fetchCategories();
+    }
+
+    function resetForm() {
+      document.getElementById("categoryName").value = "";
+    }
+
+    // Load categories on page load
+    fetchCategories();
+  </script>
+</body>
+</html>
