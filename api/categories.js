@@ -1,41 +1,34 @@
-const express = require("express");
-const pool = require("../db");
-const router = express.Router();
+const pool = require('./db'); // make sure db.js is in the same folder
 
-// Get all categories
-router.get("/", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT * FROM categories ORDER BY id DESC");
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Add a new category
-router.post("/", async (req, res) => {
-  try {
+module.exports = async (req, res) => {
+  if (req.method === 'GET') {
+    try {
+      const result = await pool.query('SELECT * FROM categories ORDER BY id DESC');
+      res.status(200).json(result.rows);
+    } catch (err) {
+      console.error('GET error:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  } else if (req.method === 'POST') {
     const { name } = req.body;
-    if (!name) return res.status(400).json({ error: "Name is required" });
-    const result = await pool.query(
-      "INSERT INTO categories (name) VALUES ($1) RETURNING *",
-      [name]
-    );
-    res.json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
-// Delete category
-router.delete("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    await pool.query("DELETE FROM categories WHERE id = $1", [id]);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required' });
+    }
 
-module.exports = router;
+    const code = name.toLowerCase().replace(/\s+/g, '-');
+
+    try {
+      const result = await pool.query(
+        'INSERT INTO categories (code, name) VALUES ($1, $2) RETURNING *',
+        [code, name]
+      );
+      res.status(201).json(result.rows[0]);
+    } catch (err) {
+      console.error('POST error:', err);
+      res.status(500).json({ error: 'Failed to save category' });
+    }
+  } else {
+    res.status(405).json({ error: 'Method Not Allowed' });
+  }
+};
