@@ -1,34 +1,35 @@
+const express = require("express");
+const router = express.Router();
 const pool = require("../db");
 
-module.exports = async (req, res) => {
-  if (req.method === "POST") {
+// Get all categories
+router.get("/", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM categories ORDER BY id DESC");
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Add a new category
+router.post("/", async (req, res) => {
+  try {
     const { name } = req.body;
 
     if (!name) {
-      return res.status(400).send("Category name is required");
+      return res.status(400).json({ error: "Category name is required" });
     }
 
-    try {
-      const result = await pool.query(
-        "INSERT INTO categories (name) VALUES ($1) RETURNING *",
-        [name]
-      );
-      return res.status(200).json(result.rows[0]);
-    } catch (err) {
-      console.error("DB Insert Error:", err);
-      return res.status(500).send("Failed to save category");
-    }
+    const code = "CAT" + Date.now(); // Example: CAT162333888
+    await pool.query("INSERT INTO categories (code, name) VALUES ($1, $2)", [code, name]);
+
+    res.status(201).json({ message: "Category added successfully" });
+  } catch (error) {
+    console.error("Error saving category:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
+});
 
-  if (req.method === "GET") {
-    try {
-      const result = await pool.query("SELECT * FROM categories ORDER BY id DESC");
-      return res.status(200).json(result.rows);
-    } catch (err) {
-      console.error("DB Fetch Error:", err);
-      return res.status(500).send("Failed to fetch categories");
-    }
-  }
-
-  return res.status(405).send("Method Not Allowed");
-};
+module.exports = router;
