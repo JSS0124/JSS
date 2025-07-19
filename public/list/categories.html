@@ -2,100 +2,109 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Categories</title>
   <style>
     body {
-      font-family: Arial;
+      font-family: sans-serif;
       padding: 2rem;
+      background: #f4f4f4;
     }
-    .input-group {
+    .container {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 8px;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
       margin-bottom: 1rem;
     }
-    .input-group input {
+    input {
+      width: 100%;
       padding: 0.5rem;
-      width: 300px;
-      margin-right: 1rem;
+      margin-bottom: 1rem;
+      font-size: 1rem;
     }
     button {
       padding: 0.5rem 1rem;
-      margin-right: 0.5rem;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
     }
     table {
       width: 100%;
       margin-top: 2rem;
       border-collapse: collapse;
     }
-    th, td {
-      border: 1px solid #ccc;
+    table th, table td {
+      border: 1px solid #ddd;
       padding: 0.5rem;
-    }
-    th {
-      background: #f4f4f4;
+      text-align: left;
     }
   </style>
 </head>
 <body>
-  <h2>Category List</h2>
+  <div class="container">
+    <h1>Manage Categories</h1>
 
-  <div class="input-group">
-    <input type="text" id="categoryName" placeholder="Enter category name" />
-    <button onclick="saveCategory()">Save</button>
-    <button onclick="resetForm()">Cancel</button>
+    <input type="text" id="categoryName" placeholder="Enter new category name" />
+    <button onclick="saveCategory()">Save Category</button>
+
+    <table id="categoryTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Categories will be loaded here -->
+      </tbody>
+    </table>
   </div>
-
-  <table>
-    <thead>
-      <tr>
-        <th>Code (ID)</th>
-        <th>Name</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="categoryTable"></tbody>
-  </table>
 
   <script>
     async function fetchCategories() {
-      const res = await fetch("/api/categories");
+      const res = await fetch("/api/Category");
       const data = await res.json();
-      const table = document.getElementById("categoryTable");
-      table.innerHTML = "";
-      data.forEach((cat) => {
+
+      const tableBody = document.querySelector("#categoryTable tbody");
+      tableBody.innerHTML = "";
+
+      data.forEach(cat => {
         const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${cat.id}</td>
-          <td>${cat.name}</td>
-          <td><button onclick="deleteCategory(${cat.id})">Delete</button></td>
-        `;
-        table.appendChild(row);
+        row.innerHTML = `<td>${cat.id}</td><td>${cat.name}</td>`;
+        tableBody.appendChild(row);
       });
     }
 
     async function saveCategory() {
       const name = document.getElementById("categoryName").value.trim();
-      if (!name) return alert("Category name required");
-      const res = await fetch("/api/categories", {
+
+      if (!name) {
+        alert("Please enter a category name.");
+        return;
+      }
+
+      const res = await fetch("/api/Category", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name })
       });
+
       if (res.ok) {
-        resetForm();
+        alert("Category saved.");
+        document.getElementById("categoryName").value = "";
         fetchCategories();
+      } else {
+        const errorText = await res.text();
+        alert("Failed to save category: " + errorText);
       }
     }
 
-    async function deleteCategory(id) {
-      if (!confirm("Delete this category?")) return;
-      await fetch(`/api/categories/${id}`, { method: "DELETE" });
-      fetchCategories();
-    }
-
-    function resetForm() {
-      document.getElementById("categoryName").value = "";
-    }
-
-    // Load categories on page load
     fetchCategories();
   </script>
 </body>
