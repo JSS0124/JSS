@@ -1,31 +1,28 @@
+// /api/products.js
 const express = require("express");
 const router = express.Router();
-const pool = require("../db"); // Assuming db.js exports your PostgreSQL pool
+const db = require("../db");
 
 // Get all products
 router.get("/", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT * FROM products ORDER BY id DESC");
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error fetching products:", err.message);
-    res.status(500).send("Server Error");
-  }
+  const result = await db.query("SELECT * FROM products ORDER BY id DESC");
+  res.json(result.rows);
 });
 
-// Add a product
+// Add product
 router.post("/", async (req, res) => {
-  try {
-    const { name, category_id, price } = req.body;
-    const result = await pool.query(
-      "INSERT INTO products (name, category_id, price) VALUES ($1, $2, $3) RETURNING *",
-      [name, category_id, price]
-    );
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error("Error adding product:", err.message);
-    res.status(500).send("Server Error");
-  }
+  const { code, name, category, price, price1, price2, price3 } = req.body;
+  const result = await db.query(
+    "INSERT INTO products (code, name, category, price, price1, price2, price3) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *",
+    [code, name, category, price, price1, price2, price3]
+  );
+  res.json(result.rows[0]);
+});
+
+// Delete product
+router.delete("/:id", async (req, res) => {
+  await db.query("DELETE FROM products WHERE id = $1", [req.params.id]);
+  res.sendStatus(204);
 });
 
 module.exports = router;
