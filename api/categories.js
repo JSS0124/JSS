@@ -1,15 +1,14 @@
 const express = require("express");
-const router = express.Router();
 const pool = require("../db");
+const router = express.Router();
 
 // Get all categories
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM categories ORDER BY id DESC");
     res.json(result.rows);
-  } catch (error) {
-    console.error("Error fetching categories:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -17,18 +16,25 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const { name } = req.body;
+    if (!name) return res.status(400).json({ error: "Name is required" });
+    const result = await pool.query(
+      "INSERT INTO categories (name) VALUES ($1) RETURNING *",
+      [name]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-    if (!name) {
-      return res.status(400).json({ error: "Category name is required" });
-    }
-
-    const code = "CAT" + Date.now(); // Example: CAT162333888
-    await pool.query("INSERT INTO categories (code, name) VALUES ($1, $2)", [code, name]);
-
-    res.status(201).json({ message: "Category added successfully" });
-  } catch (error) {
-    console.error("Error saving category:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+// Delete category
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query("DELETE FROM categories WHERE id = $1", [id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
