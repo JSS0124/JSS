@@ -1,18 +1,132 @@
-<!-- /list/products.html -->
-<h1>Products</h1>
-<table id="productsTable">
-  <thead>
-    <tr><th>ID</th><th>Name</th><th>Category</th><th>Rate</th></tr>
-  </thead>
-  <tbody></tbody>
-</table>
-<script>
-fetch('/api/products') // ensure this route is available
-  .then(res => res.json())
-  .then(data => {
-    const tbody = document.querySelector('#productsTable tbody');
-    data.forEach(p => {
-      tbody.innerHTML += `<tr><td>${p.id}</td><td>${p.name}</td><td>${p.category_name || '-'}</td><td>${p.rate}</td></tr>`;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Product Management</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #f4f4f4; }
+    input, select { width: 100%; padding: 5px; }
+    .btn { padding: 6px 10px; margin: 5px; cursor: pointer; }
+    .btn-danger { background: #e74c3c; color: white; }
+    .btn-save { background: #2ecc71; color: white; }
+    .btn-cancel { background: #95a5a6; color: white; }
+  </style>
+</head>
+<body>
+  <h2>Product Management</h2>
+
+  <form id="productForm">
+    <table>
+      <tr>
+        <th>Code</th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Price</th>
+        <th>Price 1</th>
+        <th>Price 2</th>
+        <th>Price 3</th>
+        <th>Action</th>
+      </tr>
+      <tr>
+        <td><input type="text" name="code" required /></td>
+        <td><input type="text" name="name" required /></td>
+        <td>
+          <select name="category" id="categorySelect" required>
+            <option value="">Select</option>
+          </select>
+        </td>
+        <td><input type="number" name="price" /></td>
+        <td><input type="number" name="price1" /></td>
+        <td><input type="number" name="price2" /></td>
+        <td><input type="number" name="price3" /></td>
+        <td>
+          <button type="submit" class="btn btn-save">Save</button>
+          <button type="button" class="btn btn-cancel" onclick="clearForm()">Cancel</button>
+        </td>
+      </tr>
+    </table>
+  </form>
+
+  <h3>Product List</h3>
+  <table id="productTable">
+    <thead>
+      <tr>
+        <th>Code</th><th>Name</th><th>Category</th><th>Price</th><th>Price 1</th><th>Price 2</th><th>Price 3</th><th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const categorySelect = document.getElementById("categorySelect");
+    const productTable = document.querySelector("#productTable tbody");
+    const form = document.getElementById("productForm");
+
+    // Fetch categories
+    async function loadCategories() {
+      const res = await fetch("/api/categories");
+      const categories = await res.json();
+      categories.forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat.name;
+        opt.textContent = cat.name;
+        categorySelect.appendChild(opt);
+      });
+    }
+
+    // Fetch and show products
+    async function loadProducts() {
+      const res = await fetch("/api/products");
+      const products = await res.json();
+      productTable.innerHTML = "";
+      products.forEach(p => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${p.code}</td>
+          <td>${p.name}</td>
+          <td>${p.category}</td>
+          <td>${p.price}</td>
+          <td>${p.price1}</td>
+          <td>${p.price2}</td>
+          <td>${p.price3}</td>
+          <td><button onclick="deleteProduct(${p.id})" class="btn btn-danger">Delete</button></td>
+        `;
+        productTable.appendChild(row);
+      });
+    }
+
+    // Submit new product
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(form));
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      if (res.ok) {
+        clearForm();
+        loadProducts();
+      }
     });
-  });
-</script>
+
+    function clearForm() {
+      form.reset();
+    }
+
+    async function deleteProduct(id) {
+      if (confirm("Delete this product?")) {
+        await fetch(`/api/products/${id}`, { method: "DELETE" });
+        loadProducts();
+      }
+    }
+
+    loadCategories();
+    loadProducts();
+  </script>
+</body>
+</html>
