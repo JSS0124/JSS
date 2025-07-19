@@ -3,18 +3,19 @@ const router = express.Router();
 const pool = require("../db");
 
 // Get all products with category name
-router.get("/", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT p.*, c.name AS category_name
-      FROM products p
-      JOIN categories c ON p.category_id = c.id
-      ORDER BY p.id ASC
-    `);
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error fetching products:", err);
-    res.status(500).json({ error: "Server error" });
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: "Category name is required" });
+    }
+
+    const code = "CAT" + Date.now();
+    await pool.query("INSERT INTO categories (code, name) VALUES ($1, $2)", [code, name]);
+    res.status(201).json({ message: "Category added" });
+  } catch (error) {
+    console.error("Error saving category:", error); // 👈 this helps
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
