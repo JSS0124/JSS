@@ -1,52 +1,33 @@
-// api/products.js
-import pool from '../lib/db';
+const express = require("express");
+const router = express.Router();
+const pool = require("../db");
 
-export default async function handler(req, res) {
-  if (req.method === 'GET') {
-    try {
-      const result = await pool.query(`
-        SELECT p.*, c.name AS category_name
-        FROM products p
-        LEFT JOIN categories c ON p.category_id = c.id
-        ORDER BY p.id DESC
-      `);
-      return res.status(200).json(result.rows);
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ error: 'Failed to fetch products' });
-    }
-  }
+// Get all products with category name
+router.get("/", async (req, res) => {
+  const result = await pool.query(`
+    SELECT p.*, c.name AS category_name
+    FROM products p
+    JOIN categories c ON p.category_id = c.id
+    ORDER BY p.id ASC
+  `);
+  res.json(result.rows);
+});
 
-  if (req.method === 'POST') {
-    const { name, category_id, price, price1, price2, price3 } = req.body;
+// Add new product
+router.post("/", async (req, res) => {
+  const { name, category_id, price, price1, price2, price3 } = req.body;
+  const result = await pool.query(
+    `INSERT INTO products (name, category_id, price, price1, price2, price3)
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+    [name, category_id, price, price1, price2, price3]
+  );
+  res.json(result.rows[0]);
+});
 
-    if (!name || !category_id) {
-      return res.status(400).json({ error: 'Missing fields' });
-    }
+// Delete product
+router.delete("/:id", async (req, res) => {
+  await pool.query("DELETE FROM products WHERE id = $1", [req.params.id]);
+  res.json({ success: true });
+});
 
-    try {
-      const result = await pool.query(
-        `INSERT INTO products (name, category_id, price, price1, price2, price3)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-        [name, category_id, price, price1, price2, price3]
-      );
-      return res.status(201).json(result.rows[0]);
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ error: 'Failed to save product' });
-    }
-  }
-
-  if (req.method === 'DELETE') {
-    const { id } = req.query;
-    try {
-      await pool.query('DELETE FROM products WHERE id = $1', [id]);
-      return res.status(200).json({ message: 'Deleted' });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ error: 'Failed to delete product' });
-    }
-  }
-
-  return res.status(405).json({ error: 'Method Not Allowed' });
-}
+module.exports = router;
