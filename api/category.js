@@ -1,26 +1,28 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const pool = require('../db');
+const pool = require("../db");
 
-// Get all categories
-router.get('/', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM categories ORDER BY name ASC');
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ message: 'Error fetching categories' });
-  }
+// GET all categories
+router.get("/", async (req, res) => {
+  const result = await pool.query("SELECT * FROM categories ORDER BY id ASC");
+  res.json(result.rows);
 });
 
-// Add a new category
-router.post('/add', async (req, res) => {
+// POST new category
+router.post("/", async (req, res) => {
   const { name } = req.body;
-  try {
-    await pool.query('INSERT INTO categories (name) VALUES ($1)', [name]);
-    res.status(201).json({ message: 'Category added' });
-  } catch (err) {
-    res.status(500).json({ message: 'Error adding category' });
-  }
+  const result = await pool.query(
+    "INSERT INTO categories (name) VALUES ($1) RETURNING *",
+    [name]
+  );
+  res.json(result.rows[0]);
+});
+
+// DELETE category
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+  await pool.query("DELETE FROM categories WHERE id = $1", [id]);
+  res.json({ success: true });
 });
 
 module.exports = router;
