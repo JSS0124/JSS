@@ -1,102 +1,33 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Categories</title>
-  <style>
-    body {
-      font-family: Arial;
-      padding: 2rem;
-    }
-    .input-group {
-      margin-bottom: 1rem;
-    }
-    .input-group input {
-      padding: 0.5rem;
-      width: 300px;
-      margin-right: 1rem;
-    }
-    button {
-      padding: 0.5rem 1rem;
-      margin-right: 0.5rem;
-    }
-    table {
-      width: 100%;
-      margin-top: 2rem;
-      border-collapse: collapse;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 0.5rem;
-    }
-    th {
-      background: #f4f4f4;
-    }
-  </style>
-</head>
-<body>
-  <h2>Category List</h2>
+const express = require("express");
+const router = express.Router();
+const pool = require("../db");
 
-  <div class="input-group">
-    <input type="text" id="categoryName" placeholder="Enter category name" />
-    <button onclick="saveCategory()">Save</button>
-    <button onclick="resetForm()">Cancel</button>
-  </div>
+// Get all products with category name
+router.get("/", async (req, res) => {
+  const result = await pool.query(`
+    SELECT p.*, c.name AS category_name
+    FROM products p
+    JOIN categories c ON p.category_id = c.id
+    ORDER BY p.id ASC
+  `);
+  res.json(result.rows);
+});
 
-  <table>
-    <thead>
-      <tr>
-        <th>Code (ID)</th>
-        <th>Name</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="categoryTable"></tbody>
-  </table>
+// Add new product
+router.post("/", async (req, res) => {
+  const { name, category_id, price, price1, price2, price3 } = req.body;
+  const result = await pool.query(
+    `INSERT INTO products (name, category_id, price, price1, price2, price3)
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+    [name, category_id, price, price1, price2, price3]
+  );
+  res.json(result.rows[0]);
+});
 
-  <script>
-    async function fetchCategories() {
-      const res = await fetch("/api/categories");
-      const data = await res.json();
-      const table = document.getElementById("categoryTable");
-      table.innerHTML = "";
-      data.forEach((cat) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${cat.id}</td>
-          <td>${cat.name}</td>
-          <td><button onclick="deleteCategory(${cat.id})">Delete</button></td>
-        `;
-        table.appendChild(row);
-      });
-    }
+// Delete product
+router.delete("/:id", async (req, res) => {
+  await pool.query("DELETE FROM products WHERE id = $1", [req.params.id]);
+  res.json({ success: true });
+});
 
-    async function saveCategory() {
-      const name = document.getElementById("categoryName").value.trim();
-      if (!name) return alert("Category name required");
-      const res = await fetch("/api/categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      });
-      if (res.ok) {
-        resetForm();
-        fetchCategories();
-      }
-    }
-
-    async function deleteCategory(id) {
-      if (!confirm("Delete this category?")) return;
-      await fetch(`/api/categories/${id}`, { method: "DELETE" });
-      fetchCategories();
-    }
-
-    function resetForm() {
-      document.getElementById("categoryName").value = "";
-    }
-
-    // Load categories on page load
-    fetchCategories();
-  </script>
-</body>
-</html>
+module.exports = router;
