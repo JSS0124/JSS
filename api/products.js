@@ -4,13 +4,18 @@ const pool = require("../db");
 
 // Get all products with category name
 router.get("/", async (req, res) => {
-  const result = await pool.query(`
-    SELECT p.*, c.name AS category_name
-    FROM products p
-    JOIN categories c ON p.category_id = c.id
-    ORDER BY p.id ASC
-  `);
-  res.json(result.rows);
+  try {
+    const result = await pool.query(`
+      SELECT p.*, c.name AS category_name
+      FROM products p
+      JOIN categories c ON p.category_id = c.id
+      ORDER BY p.id ASC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error fetching products:", err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 // Add new product
@@ -29,5 +34,6 @@ router.delete("/:id", async (req, res) => {
   await pool.query("DELETE FROM products WHERE id = $1", [req.params.id]);
   res.json({ success: true });
 });
+
 
 module.exports = router;
