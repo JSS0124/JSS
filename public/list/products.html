@@ -1,33 +1,130 @@
-const express = require("express");
-const router = express.Router();
-const pool = require("../db");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Products</title>
+  <style>
+    body { font-family: Arial; padding: 2rem; }
+    .form-group { margin-bottom: 1rem; }
+    input, select { padding: 0.5rem; width: 300px; }
+    button { padding: 0.5rem 1rem; margin-right: 0.5rem; }
+    table { width: 100%; margin-top: 2rem; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; }
+    th { background-color: #f4f4f4; }
+  </style>
+</head>
+<body>
+  <h2>Product Management</h2>
 
-// Get all products with category name
-router.get("/", async (req, res) => {
-  const result = await pool.query(`
-    SELECT p.*, c.name AS category_name
-    FROM products p
-    JOIN categories c ON p.category_id = c.id
-    ORDER BY p.id ASC
-  `);
-  res.json(result.rows);
-});
+  <div class="form-group">
+    <input type="text" id="name" placeholder="Product Name" />
+  </div>
+  <div class="form-group">
+    <select id="categorySelect"></select>
+  </div>
+  <div class="form-group">
+    <input type="number" id="price" placeholder="Price" />
+    <input type="number" id="price1" placeholder="Price 1" />
+    <input type="number" id="price2" placeholder="Price 2" />
+    <input type="number" id="price3" placeholder="Price 3" />
+  </div>
+  <div class="form-group">
+    <button onclick="saveProduct()">Save</button>
+    <button onclick="resetForm()">Cancel</button>
+  </div>
 
-// Add new product
-router.post("/", async (req, res) => {
-  const { name, category_id, price, price1, price2, price3 } = req.body;
-  const result = await pool.query(
-    `INSERT INTO products (name, category_id, price, price1, price2, price3)
-     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-    [name, category_id, price, price1, price2, price3]
-  );
-  res.json(result.rows[0]);
-});
+  <table>
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Price</th>
+        <th>Price 1</th>
+        <th>Price 2</th>
+        <th>Price 3</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="productTable"></tbody>
+  </table>
 
-// Delete product
-router.delete("/:id", async (req, res) => {
-  await pool.query("DELETE FROM products WHERE id = $1", [req.params.id]);
-  res.json({ success: true });
-});
+  <script>
+    async function fetchCategories() {
+      const res = await fetch("/api/categories");
+      const categories = await res.json();
+      const select = document.getElementById("categorySelect");
+      select.innerHTML = '<option value="">Select Category</option>';
+      categories.forEach(cat => {
+        const option = document.createElement("option");
+        option.value = cat.id;
+        option.textContent = cat.name;
+        select.appendChild(option);
+      });
+    }
 
-module.exports = router;
+    async function fetchProducts() {
+      const res = await fetch("/api/products");
+      const products = await res.json();
+      const table = document.getElementById("productTable");
+      table.innerHTML = "";
+      products.forEach(p => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${p.id}</td>
+          <td>${p.name}</td>
+          <td>${p.category_name}</td>
+          <td>${p.price || "-"}</td>
+          <td>${p.price1 || "-"}</td>
+          <td>${p.price2 || "-"}</td>
+          <td>${p.price3 || "-"}</td>
+          <td><button onclick="deleteProduct(${p.id})">Delete</button></td>
+        `;
+        table.appendChild(row);
+      });
+    }
+
+    async function saveProduct() {
+      const name = document.getElementById("name").value.trim();
+      const category_id = document.getElementById("categorySelect").value;
+      const price = document.getElementById("price").value || null;
+      const price1 = document.getElementById("price1").value || null;
+      const price2 = document.getElementById("price2").value || null;
+      const price3 = document.getElementById("price3").value || null;
+
+      if (!name || !category_id) return alert("Name and category are required");
+
+      const body = { name, category_id, price, price1, price2, price3 };
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (res.ok) {
+        resetForm();
+        fetchProducts();
+      }
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm("Delete this product?")) return;
+      await fetch(`/api/products/${id}`, { method: "DELETE" });
+      fetchProducts();
+    }
+
+    function resetForm() {
+      document.getElementById("name").value = "";
+      document.getElementById("categorySelect").value = "";
+      document.getElementById("price").value = "";
+      document.getElementById("price1").value = "";
+      document.getElementById("price2").value = "";
+      document.getElementById("price3").value = "";
+    }
+
+    // Init
+    fetchCategories();
+    fetchProducts();
+  </script>
+</body>
+</html>
