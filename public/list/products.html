@@ -68,27 +68,36 @@
       `).join("");
     }
 
-    async function addProduct() {
-      const name = document.getElementById("name").value;
-      const category_id = document.getElementById("category").value;
-      const price = document.getElementById("price").value;
-      const price1 = document.getElementById("price1").value;
-      const price2 = document.getElementById("price2").value;
-      const price3 = document.getElementById("price3").value;
+async function addProduct() {
+  const name = document.getElementById("name").value;
+  const category_id = document.getElementById("category").value;
+  const price = document.getElementById("price").value;
 
-      const res = await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, category_id, price, price1, price2, price3 })
-      });
+  // Optional fields - convert empty strings to null
+  const price1 = document.getElementById("price1").value || null;
+  const price2 = document.getElementById("price2").value || null;
+  const price3 = document.getElementById("price3").value || null;
 
-      if (res.ok) {
-        fetchProducts();
-        document.querySelectorAll("input").forEach(input => input.value = "");
-      } else {
-        alert("Failed to save product");
-      }
-    }
+  const res = await fetch("/api/products", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name,
+      category_id,
+      price,
+      price1,
+      price2,
+      price3
+    }),
+  });
+
+  if (res.ok) {
+    alert("✅ Product saved successfully");
+    location.reload();
+  } else {
+    alert("❌ Failed to save product");
+  }
+}
 
     async function deleteProduct(id) {
       if (!confirm("Delete this product?")) return;
