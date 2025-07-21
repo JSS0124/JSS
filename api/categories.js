@@ -1,4 +1,5 @@
-const pool = require('./db'); // make sure db.js is in the same folder
+const pool = require('./db');
+const getRawBody = require('raw-body');
 
 module.exports = async (req, res) => {
   if (req.method === 'GET') {
@@ -10,19 +11,21 @@ module.exports = async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   } else if (req.method === 'POST') {
-    const { name } = req.body;
-
-    if (!name) {
-      return res.status(400).json({ error: 'Name is required' });
-    }
-
-    const code = name.toLowerCase().replace(/\s+/g, '-');
-
     try {
+      const body = JSON.parse((await getRawBody(req)).toString());
+      const { name } = body;
+
+      if (!name) {
+        return res.status(400).json({ error: 'Name is required' });
+      }
+
+      const code = name.toLowerCase().replace(/\s+/g, '-');
+
       const result = await pool.query(
         'INSERT INTO categories (code, name) VALUES ($1, $2) RETURNING *',
         [code, name]
       );
+
       res.status(201).json(result.rows[0]);
     } catch (err) {
       console.error('POST error:', err);
