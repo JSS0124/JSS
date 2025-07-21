@@ -15,12 +15,14 @@ const deliveryRoutes = require("./api/deliveries");
 const deliverySingle = require("./api/delivery");
 const vendorRoutes = require("./api/vendors");
 const uploadRoutes = require("./api/uploadExcel");
+const productRoutes = require("./api/products");
 
 app.use("/api/categories", categoryRoutes); // ✅ fixed typo
 app.use("/api/deliveries", deliveryRoutes);
 app.use("/api/delivery", deliverySingle);
 app.use("/api/vendors", vendorRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/products", productRoutes);
 
 // Serve dashboard.html at root
 app.get("/", (req, res) => {
