@@ -24,19 +24,26 @@ router.post("/", async (req, res) => {
   try {
     const { name, category_id, price, price1, price2, price3 } = req.body;
 
-    if (!name || !category_id) {
-      return res.status(400).json({ error: "Name and Category are required" });
+    if (!name || !category_id || !price) {
+      return res.status(400).json({ error: "Name, category, and base price are required" });
     }
 
     const result = await pool.query(
       `INSERT INTO products (name, category_id, price, price1, price2, price3)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [name, category_id, price, price1, price2, price3]
+      [
+        name,
+        category_id,
+        price,
+        price1 || null,
+        price2 || null,
+        price3 || null,
+      ]
     );
 
     res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error("POST error:", err);
+  } catch (error) {
+    console.error("Error saving product:", error);
     res.status(500).json({ error: "Failed to save product" });
   }
 });
