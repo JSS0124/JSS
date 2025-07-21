@@ -16,13 +16,13 @@ const deliverySingle = require("./api/delivery");
 const vendorRoutes = require("./api/vendors");
 const uploadRoutes = require("./api/uploadExcel");
 
-app.use("/api/categories", categoriesRoutes);
+app.use("/api/categories", categoryRoutes); // ✅ fixed typo
 app.use("/api/deliveries", deliveryRoutes);
 app.use("/api/delivery", deliverySingle);
 app.use("/api/vendors", vendorRoutes);
 app.use("/api/upload", uploadRoutes);
 
-// Route root (/) to serve dashboard.html
+// Serve dashboard.html at root
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "dashboard.html"));
 });
