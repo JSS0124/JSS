@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 // API Routes
-const categoryRoutes = require("./api/categories");
+const categoryRoutes = require("./api/category");
 const deliveryRoutes = require("./api/deliveries");
 const deliverySingle = require("./api/delivery");
 const vendorRoutes = require("./api/vendors");
