@@ -13,18 +13,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// DELETE category by ID
-router.delete("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    await pool.query("DELETE FROM categories WHERE id = $1", [id]);
-    res.json({ success: true });
-  } catch (err) {
-    console.error("DELETE error:", err);
-    res.status(500).json({ error: "Failed to delete category" });
-  }
-});
-
 // POST new category
 router.post("/", async (req, res) => {
   try {
@@ -45,6 +33,18 @@ router.post("/", async (req, res) => {
   } catch (err) {
     console.error("POST error:", err);
     res.status(500).json({ error: "Failed to save category" });
+  }
+});
+
+// DELETE category
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query("DELETE FROM categories WHERE id = $1", [id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("DELETE error:", err);
+    res.status(500).json({ error: "Failed to delete category" });
   }
 });
 
