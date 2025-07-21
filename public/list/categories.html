@@ -1,82 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Categories</title>
   <style>
-    body { font-family: Arial; padding: 20px; }
-    input, button { padding: 8px; margin: 5px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-    th { background-color: #f4f4f4; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+    }
+    th {
+      background: #f4f4f4;
+    }
+    .btn {
+      padding: 6px 12px;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+    .btn-primary {
+      background: #007bff;
+      color: white;
+    }
   </style>
 </head>
 <body>
   <h1>Categories</h1>
-  <input type="text" id="categoryName" placeholder="Enter category name" />
-  <button onclick="addCategory()">Add Category</button>
-  <p id="message" style="color:red;"></p>
+
+  <form id="categoryForm">
+    <input type="text" id="categoryName" placeholder="Enter category name" required>
+    <button type="submit" class="btn btn-primary">Add Category</button>
+  </form>
+
+  <h2>All Categories</h2>
   <table>
     <thead>
       <tr>
         <th>ID</th>
         <th>Code</th>
         <th>Name</th>
+        <th>Action</th>
       </tr>
     </thead>
-    <tbody id="categoryList"></tbody>
+    <tbody id="categoryTable">
+      <!-- Categories will be loaded here -->
+    </tbody>
   </table>
 
   <script>
-    async function fetchCategories() {
-      try {
-        const res = await fetch('/api/categories');
-        const data = await res.json();
-        const list = document.getElementById('categoryList');
-        list.innerHTML = "";
-        data.forEach(cat => {
-          list.innerHTML += `<tr><td>${cat.id}</td><td>${cat.code}</td><td>${cat.name}</td></tr>`;
-        });
-      } catch (err) {
-        console.error(err);
-        document.getElementById("message").innerText = "Failed to load categories.";
-      }
+    async function loadCategories() {
+      const res = await fetch("/api/categories");
+      const data = await res.json();
+      const table = document.getElementById("categoryTable");
+      table.innerHTML = "";
+
+      data.forEach(cat => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${cat.id}</td>
+          <td>${cat.code}</td>
+          <td>${cat.name}</td>
+          <td>
+            <button class="btn btn-danger" onclick="deleteCategory(${cat.id})">Delete</button>
+          </td>
+        `;
+        table.appendChild(row);
+      });
     }
 
-    async function addCategory() {
-      const name = document.getElementById('categoryName').value;
-      if (!name.trim()) {
-        document.getElementById("message").innerText = "Please enter category name";
-        return;
-      }
-
-      try {
-        const res = await fetch('/api/categories', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ name })
+    async function deleteCategory(id) {
+      if (confirm("Are you sure you want to delete this category?")) {
+        const res = await fetch(`/api/categories/${id}`, {
+          method: "DELETE",
         });
-
         const result = await res.json();
-
-        if (res.ok) {
-          document.getElementById("message").style.color = "green";
-          document.getElementById("message").innerText = result.message;
-          document.getElementById("categoryName").value = "";
-          fetchCategories(); // refresh table
+        if (result.success) {
+          loadCategories();
         } else {
-          document.getElementById("message").style.color = "red";
-          document.getElementById("message").innerText = result.error || "Failed to save";
+          alert("Failed to delete category");
         }
-      } catch (err) {
-        console.error(err);
-        document.getElementById("message").innerText = "Error saving category.";
       }
     }
 
-    fetchCategories();
+    document.getElementById("categoryForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("categoryName").value.trim();
+      if (!name) return;
+
+      const res = await fetch("/api/categories", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name })
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        document.getElementById("categoryName").value = "";
+        loadCategories();
+      } else {
+        alert(result.error || "Failed to save category");
+      }
+    });
+
+    loadCategories(); // Load on page load
   </script>
 </body>
 </html>
