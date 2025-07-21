@@ -1,16 +1,18 @@
-const pool = require('./db');
+const pool = require('../db'); // go one level up from /api
 const getRawBody = require('raw-body');
 
 module.exports = async (req, res) => {
   if (req.method === 'GET') {
     try {
       const result = await pool.query('SELECT * FROM categories ORDER BY id DESC');
-      res.status(200).json(result.rows);
+      return res.status(200).json(result.rows);
     } catch (err) {
       console.error('GET error:', err);
-      res.status(500).json({ error: 'Internal Server Error' });
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
-  } else if (req.method === 'POST') {
+  }
+
+  if (req.method === 'POST') {
     try {
       const body = JSON.parse((await getRawBody(req)).toString());
       const { name } = body;
@@ -26,12 +28,12 @@ module.exports = async (req, res) => {
         [code, name]
       );
 
-      res.status(201).json(result.rows[0]);
+      return res.status(201).json(result.rows[0]);
     } catch (err) {
       console.error('POST error:', err);
-      res.status(500).json({ error: 'Failed to save category' });
+      return res.status(500).json({ error: 'Failed to save category' });
     }
-  } else {
-    res.status(405).json({ error: 'Method Not Allowed' });
   }
+
+  return res.status(405).json({ error: 'Method Not Allowed' });
 };
