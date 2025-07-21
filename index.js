@@ -10,13 +10,13 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 // API Routes
-const categoryRoutes = require("./api/category");
+const categoryRoutes = require("./api/categories");
 const deliveryRoutes = require("./api/deliveries");
 const deliverySingle = require("./api/delivery");
 const vendorRoutes = require("./api/vendors");
 const uploadRoutes = require("./api/uploadExcel");
 
-app.use("/api/categories", categoryRoutes);
+app.use("/api/categories", categoriesRoutes);
 app.use("/api/deliveries", deliveryRoutes);
 app.use("/api/delivery", deliverySingle);
 app.use("/api/vendors", vendorRoutes);
