@@ -1,146 +1,166 @@
-<!-- public/List/products.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Products</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { padding: 10px; border: 1px solid #ddd; }
-    th { background-color: #f5f5f5; }
-    input, select { padding: 6px; margin-right: 5px; }
-    button { padding: 6px 10px; }
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    input, select {
+      padding: 8px;
+      margin: 5px 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    table {
+      width: 100%;
+      margin-top: 30px;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 6px 12px;
+      margin: 4px;
+    }
   </style>
 </head>
 <body>
-  <h1>Products</h1>
+  <h2>Products</h2>
 
-  <div>
-    <input id="name" placeholder="Product Name" />
-    <select id="category"></select>
-    <input id="price" type="number" placeholder="Price" />
-    <input id="price1" type="number" placeholder="Price 1" />
-    <input id="price2" type="number" placeholder="Price 2" />
-    <input id="price3" type="number" placeholder="Price 3" />
-    <button onclick="addProduct()">Add Product</button>
-  </div>
+  <form id="productForm" onsubmit="saveProduct(event)">
+    <input type="hidden" id="productId" />
 
-  <table id="productTable">
+    <label>Product Name</label>
+    <input type="text" id="name" required />
+
+    <label>Category</label>
+    <select id="category" required></select>
+
+    <label>Price</label>
+    <input type="number" id="price" required />
+
+    <label>Price 1 (optional)</label>
+    <input type="number" id="price1" />
+
+    <label>Price 2 (optional)</label>
+    <input type="number" id="price2" />
+
+    <label>Price 3 (optional)</label>
+    <input type="number" id="price3" />
+
+    <button type="submit">Save</button>
+    <button type="button" onclick="resetForm()">Cancel</button>
+  </form>
+
+  <table>
     <thead>
       <tr>
-        <th>ID</th>
         <th>Name</th>
         <th>Category</th>
         <th>Price</th>
         <th>Price1</th>
         <th>Price2</th>
         <th>Price3</th>
-        <th>Action</th>
+        <th>Actions</th>
       </tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="productsTable"></tbody>
   </table>
-<div id="editModal" style="display:none; padding: 1rem; border: 1px solid #ccc; background: #f9f9f9;">
-  <h3>Edit Product</h3>
-  <input type="hidden" id="editId">
-  <div>
-    <label>Name:</label>
-    <input type="text" id="editName">
-  </div>
-  <div>
-    <label>Category:</label>
-    <select id="editCategory"></select>
-  </div>
-  <div>
-    <label>Price:</label>
-    <input type="number" id="editPrice">
-  </div>
-  <div>
-    <label>Price 1:</label>
-    <input type="number" id="editPrice1">
-  </div>
-  <div>
-    <label>Price 2:</label>
-    <input type="number" id="editPrice2">
-  </div>
-  <div>
-    <label>Price 3:</label>
-    <input type="number" id="editPrice3">
-  </div>
-  <button onclick="updateProduct()">Save</button>
-  <button onclick="closeEditModal()">Cancel</button>
-</div>
 
   <script>
+    let categories = [];
+
     async function fetchCategories() {
       const res = await fetch("/api/categories");
-      const data = await res.json();
+      categories = await res.json();
       const select = document.getElementById("category");
-      select.innerHTML = data.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join("");
+      select.innerHTML = categories
+        .map(cat => `<option value="${cat.id}">${cat.name}</option>`)
+        .join("");
     }
 
     async function fetchProducts() {
       const res = await fetch("/api/products");
-      const data = await res.json();
-      const tbody = document.querySelector("#productTable tbody");
-      tbody.innerHTML = data.map(p => `
+      const products = await res.json();
+      const table = document.getElementById("productsTable");
+      table.innerHTML = products
+        .map(
+          p => `
         <tr>
-          <td>${p.id}</td>
           <td>${p.name}</td>
-          <td>${p.category || "-"}</td>
-          <td>${p.price || "-"}</td>
-          <td>${p.price1 || "-"}</td>
-          <td>${p.price2 || "-"}</td>
-          <td>${p.price3 || "-"}</td>
-          <td><button onclick="deleteProduct(${p.id})">Delete</button></td>
+          <td>${p.category}</td>
+          <td>${p.price}</td>
+          <td>${p.price1 || ""}</td>
+          <td>${p.price2 || ""}</td>
+          <td>${p.price3 || ""}</td>
           <td>
-          <button onclick="editProduct(${product.id})">✏️ Edit</button>
-          <button onclick="deleteProduct(${product.id})">🗑 Delete</button>
+            <button onclick="editProduct(${JSON.stringify(p).replace(/"/g, '&quot;')})">Edit</button>
+            <button onclick="deleteProduct(${p.id})">Delete</button>
           </td>
-        </tr>
-      `).join("");
+        </tr>`
+        )
+        .join("");
     }
 
-async function addProduct() {
-  const name = document.getElementById("name").value;
-  const category_id = document.getElementById("category").value;
-  const price = document.getElementById("price").value;
+    function editProduct(p) {
+      document.getElementById("productId").value = p.id;
+      document.getElementById("name").value = p.name;
+      document.getElementById("category").value = p.category_id;
+      document.getElementById("price").value = p.price;
+      document.getElementById("price1").value = p.price1 || "";
+      document.getElementById("price2").value = p.price2 || "";
+      document.getElementById("price3").value = p.price3 || "";
+    }
 
-  // Optional fields - convert empty strings to null
-  const price1 = document.getElementById("price1").value || null;
-  const price2 = document.getElementById("price2").value || null;
-  const price3 = document.getElementById("price3").value || null;
+    function resetForm() {
+      document.getElementById("productForm").reset();
+      document.getElementById("productId").value = "";
+    }
 
-  const res = await fetch("/api/products", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name,
-      category_id,
-      price,
-      price1,
-      price2,
-      price3
-    }),
-  });
+    async function saveProduct(e) {
+      e.preventDefault();
 
-  if (res.ok) {
-    alert("✅ Product saved successfully");
-    location.reload();
-  } else {
-    alert("❌ Failed to save product");
-  }
-}
+      const id = document.getElementById("productId").value;
+      const name = document.getElementById("name").value;
+      const category_id = document.getElementById("category").value;
+      const price = document.getElementById("price").value;
+      const price1 = document.getElementById("price1").value || null;
+      const price2 = document.getElementById("price2").value || null;
+      const price3 = document.getElementById("price3").value || null;
+
+      const payload = { name, category_id, price, price1, price2, price3 };
+
+      const url = id ? `/api/products/${id}` : "/api/products";
+      const method = id ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        await fetchProducts();
+        resetForm();
+      } else {
+        alert("Failed to save product");
+      }
+    }
 
     async function deleteProduct(id) {
       if (!confirm("Delete this product?")) return;
-      await fetch(`/api/products/${id}`, { method: "DELETE" });
-      fetchProducts();
+      const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
+      if (res.ok) fetchProducts();
     }
 
-    fetchCategories();
-    fetchProducts();
+    fetchCategories().then(fetchProducts);
   </script>
 </body>
 </html>
