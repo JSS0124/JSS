@@ -41,6 +41,36 @@
     </thead>
     <tbody></tbody>
   </table>
+<div id="editModal" style="display:none; padding: 1rem; border: 1px solid #ccc; background: #f9f9f9;">
+  <h3>Edit Product</h3>
+  <input type="hidden" id="editId">
+  <div>
+    <label>Name:</label>
+    <input type="text" id="editName">
+  </div>
+  <div>
+    <label>Category:</label>
+    <select id="editCategory"></select>
+  </div>
+  <div>
+    <label>Price:</label>
+    <input type="number" id="editPrice">
+  </div>
+  <div>
+    <label>Price 1:</label>
+    <input type="number" id="editPrice1">
+  </div>
+  <div>
+    <label>Price 2:</label>
+    <input type="number" id="editPrice2">
+  </div>
+  <div>
+    <label>Price 3:</label>
+    <input type="number" id="editPrice3">
+  </div>
+  <button onclick="updateProduct()">Save</button>
+  <button onclick="closeEditModal()">Cancel</button>
+</div>
 
   <script>
     async function fetchCategories() {
@@ -64,6 +94,10 @@
           <td>${p.price2 || "-"}</td>
           <td>${p.price3 || "-"}</td>
           <td><button onclick="deleteProduct(${p.id})">Delete</button></td>
+          <td>
+          <button onclick="editProduct(${product.id})">✏️ Edit</button>
+          <button onclick="deleteProduct(${product.id})">🗑 Delete</button>
+          </td>
         </tr>
       `).join("");
     }
