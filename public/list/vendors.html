@@ -1,68 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Vendors List</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 2rem;
-      background: #f5f5f5;
-    }
-    h1 {
-      text-align: center;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    th, td {
-      padding: 12px;
-      border: 1px solid #ddd;
-      text-align: left;
-    }
-    th {
-      background-color: #007bff;
-      color: white;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Vendors</title>
+  <link rel="stylesheet" href="base.css" />
 </head>
 <body>
-  <h1>Vendors List</h1>
-  <table id="vendorsTable">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Phone</th>
-        <th>Contact</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div class="container">
+    <h1>Vendors / Suppliers</h1>
+
+    <div class="form-group">
+      <input type="text" id="code" placeholder="Code (optional)">
+      <input type="text" id="name" placeholder="Vendor Name *">
+      <select id="type">
+        <option value="">Select Type</option>
+        <option>Sand</option>
+        <option>Crush</option>
+        <option>Carriage</option>
+        <option>Cash Vendor</option>
+      </select>
+      <button class="btn" onclick="addVendor()">Add Vendor</button>
+    </div>
+
+    <div class="vendor-list">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="vendorTable"></tbody>
+      </table>
+    </div>
+  </div>
 
   <script>
-    fetch('/api/vendors')
-      .then(res => res.json())
-      .then(data => {
-        const tbody = document.querySelector('#vendorsTable tbody');
-        data.forEach(vendor => {
-          const row = `
-            <tr>
-              <td>${vendor.id}</td>
-              <td>${vendor.name}</td>
-              <td>${vendor.phone || '-'}</td>
-              <td>${vendor.contact || '-'}</td>
-            </tr>
-          `;
-          tbody.insertAdjacentHTML('beforeend', row);
-        });
-      })
-      .catch(err => {
-        console.error("Failed to load vendors:", err);
+    async function loadVendors() {
+      const res = await fetch("/api/vendors");
+      const vendors = await res.json();
+
+      const table = document.getElementById("vendorTable");
+      table.innerHTML = "";
+      vendors.forEach(v => {
+        table.innerHTML += `
+          <tr>
+            <td>${v.id}</td>
+            <td>${v.code || "-"}</td>
+            <td>${v.name}</td>
+            <td>${v.type || "-"}</td>
+            <td><button onclick="deleteVendor(${v.id})">Delete</button></td>
+          </tr>
+        `;
       });
+    }
+
+    async function addVendor() {
+      const code = document.getElementById("code").value;
+      const name = document.getElementById("name").value;
+      const type = document.getElementById("type").value;
+
+      const res = await fetch("/api/vendors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, name, type })
+      });
+
+      if (res.ok) {
+        document.getElementById("code").value = "";
+        document.getElementById("name").value = "";
+        document.getElementById("type").value = "";
+        loadVendors();
+      } else {
+        alert("Failed to save vendor");
+      }
+    }
+
+    async function deleteVendor(id) {
+      await fetch(`/api/vendors/${id}`, { method: "DELETE" });
+      loadVendors();
+    }
+
+    loadVendors();
   </script>
 </body>
 </html>
