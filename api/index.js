@@ -1,17 +1,16 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const serverless = require("serverless-http"); // ✅ important
+const serverless = require("serverless-http"); // <- REQUIRED for Vercel Express
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 
-// Serve static files
-app.use(express.static(path.join(__dirname, "../public"))); // ✅ fix path
+// Use static public folder
+app.use(express.static(path.join(__dirname, "..", "public"))); // <-- fixed path
 
-// Routes
+// Import routes
 const categoryRoutes = require("./categories");
 const deliveryRoutes = require("./deliveries");
 const deliverySingle = require("./delivery");
@@ -20,6 +19,7 @@ const uploadRoutes = require("./uploadExcel");
 const productRoutes = require("./products");
 const customersRouter = require("./customers");
 
+// Mount routes
 app.use("/api/categories", categoryRoutes);
 app.use("/api/deliveries", deliveryRoutes);
 app.use("/api/delivery", deliverySingle);
@@ -28,10 +28,10 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/customers", customersRouter);
 
-// Home route
+// Serve dashboard from root
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public", "dashboard.html"));
+  res.sendFile(path.join(__dirname, "..", "public", "dashboard.html"));
 });
 
-// Export handler for Vercel
-module.exports = serverless(app); // ✅ use serverless-http
+// Export wrapped express app
+module.exports = serverless(app);
