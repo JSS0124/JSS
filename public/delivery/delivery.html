@@ -2,172 +2,75 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Add Delivery</title>
-  <link rel="stylesheet" href="/styles.css" />
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f8f9fa;
-      padding: 2rem;
-    }
-
-    .container {
-      max-width: 1100px;
-      margin: auto;
-      background: #fff;
-      padding: 2rem 3rem;
-      border-radius: 10px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 2rem;
-      color: #333;
-    }
-
-    form {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1.5rem;
-    }
-
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 0.4rem;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 0.6rem;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      font-size: 1rem;
-    }
-
-    textarea {
-      height: 100px;
-    }
-
-    button {
-      grid-column: span 2;
-      padding: 0.8rem 1.5rem;
-      font-size: 1rem;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 2rem;
-    }
-
-    table th, table td {
-      padding: 10px;
-      border: 1px solid #ddd;
-      text-align: left;
-    }
-
-    th {
-      background-color: #f1f1f1;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="container">
     <h2>Add Delivery</h2>
     <form id="deliveryForm">
-      <div>
+      <div class="form-group">
         <label>Date</label>
-        <input type="date" id="date" name="date" required />
+        <input type="date" name="date" id="date" required />
       </div>
-
-      <div>
+      <div class="form-group">
         <label>Slip Number</label>
         <input type="text" name="slip_number" required />
       </div>
-
-      <div>
+      <div class="form-group">
         <label>Customer</label>
-        <select id="customer" name="customer" required>
-          <option value="">Select Customer</option>
-        </select>
+        <select name="customer_id" id="customerSelect" required></select>
       </div>
-
-      <div>
+      <div class="form-group">
         <label>Vehicle Number</label>
         <input type="text" name="vehicle_number" required />
       </div>
-
-      <div>
+      <div class="form-group">
         <label>Product</label>
-        <select id="product" name="product" required>
-          <option value="">Select Product</option>
-        </select>
+        <select name="product_id" id="productSelect" required></select>
       </div>
-
-      <div>
+      <div class="form-group">
         <label>Vendor</label>
-        <select id="vendor" name="vendor" required>
-          <option value="">Select Vendor</option>
-        </select>
+        <select name="vendor_id" id="vendorSelect" required></select>
       </div>
-
-      <div>
+      <div class="form-group">
         <label>Foot</label>
-        <input type="number" id="foot" name="foot" required />
+        <input type="number" name="foot" id="foot" required />
       </div>
-
-      <div>
+      <div class="form-group">
         <label>Az</label>
-        <input type="number" id="az" name="az" required />
+        <input type="number" name="az" id="az" required />
       </div>
-
-      <div>
+      <div class="form-group">
         <label>Size</label>
-        <input type="number" id="size" name="size" required />
+        <input type="number" name="size" id="size" required />
       </div>
-
-      <div>
+      <div class="form-group">
         <label>Total Sqft</label>
-        <input type="number" id="total_sqft" name="total_sqft" readonly />
+        <input type="number" name="total_sqft" id="total_sqft" readonly />
       </div>
-
-      <div>
+      <div class="form-group">
         <label>Price Level</label>
-        <select id="priceLevelSelect" name="price_level">
+        <select name="price_level" id="priceLevelSelect">
           <option value="price">Price</option>
           <option value="price1">Price 1</option>
           <option value="price2">Price 2</option>
           <option value="price3">Price 3</option>
         </select>
       </div>
-
-      <div>
+      <div class="form-group">
         <label>Rate</label>
-        <input type="number" id="rate" name="rate" required />
+        <input type="number" name="rate" id="rate" required />
       </div>
-
-      <div>
+      <div class="form-group">
         <label>Total Amount</label>
-        <input type="number" id="total_amount" name="total_amount" readonly />
+        <input type="number" name="total_amount" id="total_amount" readonly />
       </div>
-
-      <div class="full-width">
+      <div class="form-group">
         <label>Remarks</label>
         <textarea name="remarks"></textarea>
       </div>
-
       <button type="submit">Save Delivery</button>
     </form>
 
@@ -191,75 +94,6 @@
     </table>
   </div>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        const [customersRes, productsRes, vendorsRes] = await Promise.all([
-          fetch("/api/customers"),
-          fetch("/api/products"),
-          fetch("/api/vendors")
-        ]);
-
-        const customers = await customersRes.json();
-        const products = await productsRes.json();
-        const vendors = await vendorsRes.json();
-
-        const customerSelect = document.getElementById("customer");
-        const productSelect = document.getElementById("product");
-        const vendorSelect = document.getElementById("vendor");
-
-        customers.forEach(c => {
-          customerSelect.innerHTML += `<option value="${c.id}">${c.name.trim()}</option>`;
-        });
-
-        products.forEach(p => {
-          productSelect.innerHTML += `<option value="${p.id}" data-price="${p.price}" data-price1="${p.price1}" data-price2="${p.price2}" data-price3="${p.price3}">${p.name.trim()}</option>`;
-        });
-
-        vendors.forEach(v => {
-          vendorSelect.innerHTML += `<option value="${v.id}">${v.name.trim()}</option>`;
-        });
-      } catch (err) {
-        console.error("Dropdown fetch error:", err);
-      }
-
-      // Auto calculate total sqft
-      const foot = document.getElementById("foot");
-      const az = document.getElementById("az");
-      const size = document.getElementById("size");
-      const totalSqft = document.getElementById("total_sqft");
-      const rate = document.getElementById("rate");
-      const totalAmount = document.getElementById("total_amount");
-      const priceLevelSelect = document.getElementById("priceLevelSelect");
-      const productSelect = document.getElementById("product");
-
-      [foot, az, size].forEach(input => {
-        input.addEventListener("input", () => {
-          const sqft = (+foot.value || 0) * (+az.value || 0) * (+size.value || 0);
-          totalSqft.value = sqft.toFixed(2);
-          totalAmount.value = (sqft * (+rate.value || 0)).toFixed(2);
-        });
-      });
-
-      rate.addEventListener("input", () => {
-        const sqft = +totalSqft.value || 0;
-        totalAmount.value = (sqft * (+rate.value || 0)).toFixed(2);
-      });
-
-      priceLevelSelect.addEventListener("change", () => {
-        const selectedProduct = productSelect.options[productSelect.selectedIndex];
-        const level = priceLevelSelect.value;
-        if (selectedProduct && selectedProduct.dataset[level]) {
-          rate.value = selectedProduct.dataset[level];
-          const sqft = +totalSqft.value || 0;
-          totalAmount.value = (sqft * (+rate.value || 0)).toFixed(2);
-        }
-      });
-
-      productSelect.addEventListener("change", () => {
-        priceLevelSelect.dispatchEvent(new Event("change"));
-      });
-    });
-  </script>
+  <script src="add.js"></script>
 </body>
 </html>
