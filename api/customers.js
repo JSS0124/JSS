@@ -3,19 +3,6 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 
-// Create table if needed (run this once in DB)
-/*
-CREATE TABLE customers (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
-  contact_person TEXT,
-  contact_number TEXT,
-  client_type TEXT,
-  address TEXT,
-  price_level TEXT
-);
-*/
-
 // Get all customers
 router.get("/", async (req, res) => {
   try {
