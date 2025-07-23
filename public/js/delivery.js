@@ -11,7 +11,7 @@ const fetchDropdownData = async () => {
     customers.forEach((cust) => {
       const option = document.createElement("option");
       option.value = cust.id;
-      option.textContent = cust.name;
+      option.textContent = cust.name?.trim(); // clean extra tabs
       customerSelect.appendChild(option);
     });
 
@@ -20,7 +20,7 @@ const fetchDropdownData = async () => {
     products.forEach((prod) => {
       const option = document.createElement("option");
       option.value = prod.id;
-      option.textContent = prod.name;
+      option.textContent = prod.name?.trim();
       productSelect.appendChild(option);
     });
 
@@ -29,12 +29,12 @@ const fetchDropdownData = async () => {
     vendors.forEach((ven) => {
       const option = document.createElement("option");
       option.value = ven.id;
-      option.textContent = ven.name;
+      option.textContent = ven.name?.trim();
       vendorSelect.appendChild(option);
     });
 
-  } catch (err) {
-    console.error("Failed to load dropdown data", err);
+  } catch (error) {
+    console.error("Error loading dropdowns", error);
   }
 };
 
