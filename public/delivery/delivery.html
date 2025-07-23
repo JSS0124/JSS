@@ -6,6 +6,75 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Add Delivery</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f5f5;
+  margin: 0;
+  padding: 2rem;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+  color: #333;
+}
+
+form .form-group {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+form .form-group label {
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: #444;
+}
+
+form .form-group input,
+form .form-group select,
+form .form-group textarea {
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+form .form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+form .form-row .form-group {
+  flex: 1;
+}
+
+button {
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+</style>
 </head>
 <body>
   <div class="container">
@@ -94,7 +163,38 @@
       <tbody></tbody>
     </table>
   </div>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const [customersRes, productsRes, vendorsRes] = await Promise.all([
+      fetch("/api/customers"),
+      fetch("/api/products"),
+      fetch("/api/vendors"),
+    ]);
 
-  <script src="add.js"></script>
+    const customers = await customersRes.json();
+    const products = await productsRes.json();
+    const vendors = await vendorsRes.json();
+
+    const customerSelect = document.getElementById("customer");
+    const productSelect = document.getElementById("product");
+    const vendorSelect = document.getElementById("vendor");
+
+    customers.forEach(c => {
+      customerSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+    });
+
+    products.forEach(p => {
+      productSelect.innerHTML += `<option value="${p.id}" data-price="${p.price}" data-price1="${p.price1}" data-price2="${p.price2}" data-price3="${p.price3}">${p.name}</option>`;
+    });
+
+    vendors.forEach(v => {
+      vendorSelect.innerHTML += `<option value="${v.id}">${v.name}</option>`;
+    });
+  } catch (err) {
+    console.error("Failed to load dropdowns:", err);
+  }
+});
+</script>
 </body>
 </html>
