@@ -186,9 +186,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       vendorSelect.innerHTML += `<option value="${v.id}">${v.name}</option>`;
     });
   } catch (err) {
-    console.error("Failed to load dropdowns:", err);
+    console.error("Dropdown fetch error:", err);
   }
 });
 </script>
+
 </body>
 </html>
