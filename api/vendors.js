@@ -16,14 +16,13 @@ router.get("/", async (req, res) => {
 // Add a vendor
 router.post("/", async (req, res) => {
   try {
-    const { code, name, type } = req.body;
-    if (!name) {
-      return res.status(400).json({ error: "Name is required" });
-    }
+    const { name, contact_person, contact_number, supplier_type } = req.body;
+    if (!name) return res.status(400).json({ error: "Name is required" });
 
     const result = await pool.query(
-      `INSERT INTO vendors (code, name, type) VALUES ($1, $2, $3) RETURNING *`,
-      [code || null, name, type || null]
+      `INSERT INTO vendors (name, contact_person, contact_number, supplier_type)
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [name, contact_person, contact_number, supplier_type]
     );
 
     res.status(201).json(result.rows[0]);
