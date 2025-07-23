@@ -1,170 +1,100 @@
+<!-- add.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Add Delivery</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 2rem;
-      background: #f4f4f4;
-    }
-    .form-container {
-      background: white;
-      padding: 2rem;
-      border-radius: 10px;
-      max-width: 500px;
-      margin: auto;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-    .form-container h2 {
-      text-align: center;
-      margin-bottom: 1.5rem;
-    }
-    .form-group {
-      margin-bottom: 1rem;
-    }
-    label {
-      font-weight: bold;
-    }
-    input, select {
-      width: 100%;
-      padding: 0.6rem;
-      margin-top: 0.3rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    button {
-      padding: 0.7rem;
-      width: 100%;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    .result {
-      margin-top: 1rem;
-      padding: 1rem;
-      background: #e8f5e9;
-      border-left: 5px solid #28a745;
-      display: none;
-    }
-    .error {
-      background: #f8d7da;
-      border-left-color: #dc3545;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
-<div class="form-container">
-  <h2>Add Delivery</h2>
-  <form id="deliveryForm">
-    <div class="form-group">
+  <div class="container">
+    <h2>Add Delivery</h2>
+    <form id="deliveryForm">
       <div class="form-group">
-        <label>Date:</label>
-        <input type="date" name="delivery_date" required />
+        <label>Date</label>
+        <input type="date" name="date" id="date" required />
       </div>
-      <label>Slip Number:</label>
-      <input type="text" name="slip_number" required />
-    </div>
-    <div class="form-group">
-      <label>Vehicle Number:</label>
-      <input type="text" name="vehicle_number" required />
-    </div>
-    <div class="form-group">
-      <label>Foot:</label>
-      <input type="number" name="foot" step="0.01" required />
-    </div>
-    <div class="form-group">
-      <label>Size:</label>
-      <input type="number" name="size" step="0.01" required />
-    </div>
-    <div class="form-group">
-      <label>Az:</label>
-      <input type="number" name="az" step="0.01" required />
-    </div>
-    <div class="form-group">
-      <label>Client:</label>
-      <select name="client_id" required>
-        <option value="1">CYN Gujjar Khan</option>
-        <option value="2">CYN Lahore</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Vendor:</label>
-      <select name="vendor_id" required>
-        <option value="1">Rajpot Traders</option>
-        <option value="2">Baba Stone</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Product:</label>
-      <select name="product_id" required>
-        <option value="1">Sand</option>
-        <option value="2">Crush</option>
-        <option value="3">Khalis Crush</option>
-      </select>
-    </div>
-    <button type="submit">Submit Delivery</button>
-  </form>
+      <div class="form-group">
+        <label>Slip Number</label>
+        <input type="text" name="slip_number" required />
+      </div>
+      <div class="form-group">
+        <label>Customer</label>
+        <select name="customer_id" id="customerSelect" required></select>
+      </div>
+      <div class="form-group">
+        <label>Vehicle Number</label>
+        <input type="text" name="vehicle_number" required />
+      </div>
+      <div class="form-group">
+        <label>Product</label>
+        <select name="product_id" id="productSelect" required></select>
+      </div>
+      <div class="form-group">
+        <label>Vendor</label>
+        <select name="vendor_id" id="vendorSelect" required></select>
+      </div>
+      <div class="form-group">
+        <label>Foot</label>
+        <input type="number" name="foot" id="foot" required />
+      </div>
+      <div class="form-group">
+        <label>Az</label>
+        <input type="number" name="az" id="az" required />
+      </div>
+      <div class="form-group">
+        <label>Size</label>
+        <input type="number" name="size" id="size" required />
+      </div>
+      <div class="form-group">
+        <label>Total Sqft</label>
+        <input type="number" name="total_sqft" id="total_sqft" readonly />
+      </div>
+      <div class="form-group">
+        <label>Price Level</label>
+        <select name="price_level" id="priceLevelSelect">
+          <option value="price">Price</option>
+          <option value="price1">Price 1</option>
+          <option value="price2">Price 2</option>
+          <option value="price3">Price 3</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Rate</label>
+        <input type="number" name="rate" id="rate" required />
+      </div>
+      <div class="form-group">
+        <label>Total Amount</label>
+        <input type="number" name="total_amount" id="total_amount" readonly />
+      </div>
+      <div class="form-group">
+        <label>Remarks</label>
+        <textarea name="remarks"></textarea>
+      </div>
+      <button type="submit">Save Delivery</button>
+    </form>
 
-  <div class="result" id="resultBox"></div>
-</div>
+    <h2>All Deliveries</h2>
+    <table id="deliveryTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Slip #</th>
+          <th>Customer</th>
+          <th>Vehicle</th>
+          <th>Product</th>
+          <th>Vendor</th>
+          <th>Sqft</th>
+          <th>Rate</th>
+          <th>Amount</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-<script>
-  const form = document.getElementById('deliveryForm');
-  const resultBox = document.getElementById('resultBox');
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const formData = new FormData(form);
-    const data = {};
-    formData.forEach((val, key) => {
-      data[key] = key === 'foot' || key === 'size' || key === 'az'
-        ? parseFloat(val)
-        : parseInt(val) || val;
-    });
-
-    try {
-      const res = await fetch('http://localhost:3000/api/add-delivery', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      const result = await res.json();
-
-      resultBox.style.display = 'block';
-      resultBox.className = 'result';
-
-      if (res.ok) {
-        resultBox.innerHTML = `
-          ✅ <strong>Success!</strong><br>
-          Delivery ID: ${result.delivery_id}<br>
-          Sqft: ${result.sqft}<br>
-          Vendor Total: Rs. ${result.vendor_total.toLocaleString()}<br>
-          Client Total: Rs. ${result.client_total.toLocaleString()}
-        `;
-      } else {
-        resultBox.classList.add('error');
-        resultBox.innerHTML = `❌ Error: ${result.error || 'Something went wrong'}`;
-      }
-
-    } catch (err) {
-      resultBox.style.display = 'block';
-      resultBox.className = 'result error';
-      resultBox.innerHTML = `❌ Failed to connect to server. Is it running?`;
-    }
-  });
-</script>
-
+  <script src="add.js"></script>
 </body>
 </html>
