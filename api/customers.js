@@ -61,4 +61,24 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+export default async function handler(req, res) {
+  if (req.method === "GET") {
+    try {
+      // Example with Neon or pg client
+      const { Client } = require("pg");
+      const client = new Client({ connectionString: process.env.DATABASE_URL });
+
+      await client.connect();
+      const result = await client.query("SELECT * FROM customers ORDER BY id DESC");
+      await client.end();
+
+      res.status(200).json(result.rows);
+    } catch (error) {
+      res.status(500).json({ error: "Error fetching customers" });
+    }
+  } else {
+    res.status(405).json({ error: "Method not allowed" });
+  }
+}
+
 module.exports = router;
