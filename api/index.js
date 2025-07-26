@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 // API Routes
-const categoryRoutes = require("./categories");
+const categoriesRouter = require("./categories");
 const deliveryRoutes = require("./deliveries");
 const deliverySingle = require("./delivery");
 const vendorRoutes = require("./vendors");
@@ -19,7 +19,7 @@ const productRoutes = require("./products");
 const customersRouter = require("./customers");
 
 // ✅ Correct path usage here
-app.use("/categories", categoryRoutes);
+app.use("/categories", categoriesRouter);
 app.use("/deliveries", deliveryRoutes);
 app.use("/delivery", deliverySingle);
 app.use("/vendors", vendorRoutes);
