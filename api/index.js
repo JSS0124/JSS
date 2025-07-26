@@ -9,13 +9,13 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "../public"))); // ✅ fix path
 
 // Your routes
-app.use("/categories", categoryRoutes);
-app.use("/deliveries", deliveryRoutes);
-app.use("/delivery", deliverySingle);
-app.use("/vendors", vendorRoutes);
-app.use("/upload", uploadRoutes);
-app.use("/products", productRoutes);
-app.use("/customers", customersRouter);
+app.use("/api/categories", categoryRoutes); // ✅ fixed typo
+app.use("/api/deliveries", deliveryRoutes);
+app.use("/api/delivery", deliverySingle);
+app.use("/api/vendors", vendorRoutes);
+app.use("/api/upload", uploadRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/customers", customersRouter);
 
 // Home route
 app.get("/", (req, res) => {
