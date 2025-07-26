@@ -2,161 +2,118 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Add Delivery</title>
-  <link rel="stylesheet" href="styles.css" />
-<style>
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f4f4f4;
-  padding: 2rem;
-}
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+    }
 
-.container {
-  max-width: 1000px;
-  margin: auto;
-  background: #fff;
-  padding: 2rem 3rem;
-  border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
-}
+    .form-group {
+      margin-bottom: 1rem;
+    }
 
-h1 {
-  text-align: center;
-  margin-bottom: 2rem;
-  color: #333;
-}
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
 
-form {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-}
+    input, select {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
 
-.full-width {
-  grid-column: span 2;
-}
+    button {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
 
-label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 0.3rem;
-  color: #444;
-}
+    button:hover {
+      background-color: #0056b3;
+    }
 
-input, select, textarea {
-  width: 100%;
-  padding: 0.6rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-}
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+    }
 
-button {
-  padding: 0.8rem 1.5rem;
-  font-size: 1rem;
-  border: none;
-  border-radius: 6px;
-  background-color: #007bff;
-  color: #fff;
-  cursor: pointer;
-  grid-column: span 2;
-}
-
-button:hover {
-  background-color: #0056b3;
-}
-</style>
-
+    h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
     <h2>Add Delivery</h2>
     <form id="deliveryForm">
       <div class="form-group">
-        <label>Date</label>
-        <input type="date" name="date" id="date" required />
+        <label for="date">Date</label>
+        <input type="date" id="date" required />
       </div>
+
       <div class="form-group">
-        <label>Slip Number</label>
-        <input type="text" name="slip_number" required />
+        <label for="slipNo">Slip Number</label>
+        <input type="text" id="slipNo" required />
       </div>
+
       <div class="form-group">
-        <label>Customer</label>
-        <select name="customer_id" id="customerSelect" required></select>
+        <label for="vehicleNo">Vehicle Number</label>
+        <input type="text" id="vehicleNo" required />
       </div>
+
       <div class="form-group">
-        <label>Vehicle Number</label>
-        <input type="text" name="vehicle_number" required />
+        <label for="customerSelect">Customer</label>
+        <select id="customerSelect" required></select>
       </div>
+
       <div class="form-group">
-        <label>Product</label>
-        <select name="product_id" id="productSelect" required></select>
+        <label for="productSelect">Product</label>
+        <select id="productSelect" required></select>
       </div>
+
       <div class="form-group">
-        <label>Vendor</label>
-        <select name="vendor_id" id="vendorSelect" required></select>
+        <label for="vendorSelect">Vendor</label>
+        <select id="vendorSelect" required></select>
       </div>
+
       <div class="form-group">
-        <label>Foot</label>
-        <input type="number" name="foot" id="foot" required />
+        <label for="length">Length (ft)</label>
+        <input type="number" id="length" step="0.01" required />
       </div>
+
       <div class="form-group">
-        <label>Az</label>
-        <input type="number" name="az" id="az" required />
+        <label for="width">Width (ft)</label>
+        <input type="number" id="width" step="0.01" required />
       </div>
+
       <div class="form-group">
-        <label>Size</label>
-        <input type="number" name="size" id="size" required />
+        <label for="rate">Rate (PKR / sqft)</label>
+        <input type="number" id="rate" step="0.01" required />
       </div>
+
       <div class="form-group">
-        <label>Total Sqft</label>
-        <input type="number" name="total_sqft" id="total_sqft" readonly />
+        <label for="total_sqft">Total Sqft</label>
+        <input type="number" id="total_sqft" readonly />
       </div>
+
       <div class="form-group">
-        <label>Price Level</label>
-        <select name="price_level" id="priceLevelSelect">
-          <option value="price">Price</option>
-          <option value="price1">Price 1</option>
-          <option value="price2">Price 2</option>
-          <option value="price3">Price 3</option>
-        </select>
+        <label for="total_amount">Total Amount (PKR)</label>
+        <input type="number" id="total_amount" readonly />
       </div>
-      <div class="form-group">
-        <label>Rate</label>
-        <input type="number" name="rate" id="rate" required />
-      </div>
-      <div class="form-group">
-        <label>Total Amount</label>
-        <input type="number" name="total_amount" id="total_amount" readonly />
-      </div>
-      <div class="form-group">
-        <label>Remarks</label>
-        <textarea name="remarks"></textarea>
-      </div>
+
       <button type="submit">Save Delivery</button>
     </form>
-
-    <h2>All Deliveries</h2>
-    <table id="deliveryTable">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Slip #</th>
-          <th>Customer</th>
-          <th>Vehicle</th>
-          <th>Product</th>
-          <th>Vendor</th>
-          <th>Sqft</th>
-          <th>Rate</th>
-          <th>Amount</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
   </div>
 
-  <script src="add.js"></script>
+  <script src="/js/delivery.js"></script>
 </body>
 </html>
