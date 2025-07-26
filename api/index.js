@@ -2,25 +2,27 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 
+// Create Express app
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Static files
-app.use(express.static(path.join(__dirname, "public")));
+// Static files (optional, works only in dev/local)
+app.use(express.static(path.join(__dirname, "../public")));
 
-// Routes
-app.use("/api/categories", require("./api/categories"));
-app.use("/api/deliveries", require("./api/deliveries"));
-app.use("/api/delivery", require("./api/delivery"));
-app.use("/api/vendors", require("./api/vendors"));
-app.use("/api/upload", require("./api/uploadExcel"));
-app.use("/api/products", require("./api/products"));
-app.use("/api/customers", require("./api/customers"));
+// API Routes
+app.use("/api/categories", require("./categories"));
+app.use("/api/deliveries", require("./deliveries"));
+app.use("/api/delivery", require("./delivery"));
+app.use("/api/vendors", require("./vendors"));
+app.use("/api/upload", require("./uploadExcel"));
+app.use("/api/products", require("./products"));
+app.use("/api/customers", require("./customers"));
 
-// Serve dashboard
+// Default Route (optional for homepage)
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+  res.send("API Root Working ✅");
 });
 
+// Export as Vercel serverless handler
 module.exports = app;
