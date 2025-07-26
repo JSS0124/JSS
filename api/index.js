@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static files
+// Static files
 app.use(express.static(path.join(__dirname, "public")));
 
 // Routes
@@ -18,7 +18,7 @@ app.use("/api/upload", require("./api/uploadExcel"));
 app.use("/api/products", require("./api/products"));
 app.use("/api/customers", require("./api/customers"));
 
-// Serve the dashboard
+// Serve dashboard
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "dashboard.html"));
 });
