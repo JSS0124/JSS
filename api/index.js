@@ -1,37 +1,29 @@
+// api/index.js
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const serverless = require("serverless-http"); // <- REQUIRED for Vercel Express
+const serverless = require("serverless-http");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Use static public folder
-app.use(express.static(path.join(__dirname, "..", "public"))); // <-- fixed path
+// Serve static files from /public folder
+app.use(express.static(path.join(__dirname, "..", "public")));
 
-// Import routes
-const categoryRoutes = require("./categories");
-const deliveryRoutes = require("./deliveries");
-const deliverySingle = require("./delivery");
-const vendorRoutes = require("./vendors");
-const uploadRoutes = require("./uploadExcel");
-const productRoutes = require("./products");
-const customersRouter = require("./customers");
+// Routes
+app.use("/api/categories", require("./categories"));
+app.use("/api/deliveries", require("./deliveries"));
+app.use("/api/delivery", require("./delivery"));
+app.use("/api/vendors", require("./vendors"));
+app.use("/api/upload", require("./uploadExcel"));
+app.use("/api/products", require("./products"));
+app.use("/api/customers", require("./customers"));
 
-// Mount routes
-app.use("/api/categories", categoryRoutes);
-app.use("/api/deliveries", deliveryRoutes);
-app.use("/api/delivery", deliverySingle);
-app.use("/api/vendors", vendorRoutes);
-app.use("/api/upload", uploadRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/customers", customersRouter);
-
-// Serve dashboard from root
+// Fallback route
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "dashboard.html"));
 });
 
-// Export wrapped express app
+// ✅ Export for Vercel
 module.exports = serverless(app);
