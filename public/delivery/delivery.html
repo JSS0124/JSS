@@ -1,1 +1,120 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Delivery</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Add Delivery</h2>
+    <form id="deliveryForm">
+      <div class="form-group">
+        <label for="date">Date</label>
+        <input type="date" id="date" required />
+      </div>
+
+      <div class="form-group">
+        <label for="slipNo">Slip Number</label>
+        <input type="text" id="slipNo" required />
+      </div>
+
+      <div class="form-group">
+        <label for="vehicleNo">Vehicle Number</label>
+        <input type="text" id="vehicleNo" required />
+      </div>
+
+      <div class="form-group">
+        <label for="customerSelect">Customer</label>
+        <select id="customerSelect" required></select>
+      </div>
+
+      <div class="form-group">
+        <label for="productSelect">Product</label>
+        <select id="productSelect" required></select>
+      </div>
+
+      <div class="form-group">
+        <label for="vendorSelect">Vendor</label>
+        <select id="vendorSelect" required></select>
+      </div>
+
+      <div class="form-group">
+        <label for="length">Length (ft)</label>
+        <input type="number" id="length" step="0.01" required />
+      </div>
+
+      <div class="form-group">
+        <label for="width">Width (ft)</label>
+        <input type="number" id="width" step="0.01" required />
+      </div>
+
+      <div class="form-group">
+        <label for="rate">Rate (PKR / sqft)</label>
+        <input type="number" id="rate" step="0.01" required />
+      </div>
+
+      <div class="form-group">
+        <label for="total_sqft">Total Sqft</label>
+        <input type="number" id="total_sqft" readonly />
+      </div>
+
+      <div class="form-group">
+        <label for="total_amount">Total Amount (PKR)</label>
+        <input type="number" id="total_amount" readonly />
+      </div>
+
+      <button type="submit">Save Delivery</button>
+    </form>
+  </div>
+
+  <script src="/js/delivery.js"></script>
+</body>
+</html>
