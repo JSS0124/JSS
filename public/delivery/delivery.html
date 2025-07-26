@@ -2,118 +2,98 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Add Delivery</title>
-  <link rel="stylesheet" href="/css/style.css" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 2rem;
-    }
-
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: bold;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 0.5rem;
-      font-size: 1rem;
-    }
-
-    button {
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
-    .container {
-      max-width: 700px;
-      margin: 0 auto;
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="container">
     <h2>Add Delivery</h2>
     <form id="deliveryForm">
       <div class="form-group">
-        <label for="date">Date</label>
-        <input type="date" id="date" required />
+        <label>Date</label>
+        <input type="date" name="date" id="date" required />
       </div>
-
       <div class="form-group">
-        <label for="slipNo">Slip Number</label>
-        <input type="text" id="slipNo" required />
+        <label>Slip Number</label>
+        <input type="text" name="slip_number" required />
       </div>
-
       <div class="form-group">
-        <label for="vehicleNo">Vehicle Number</label>
-        <input type="text" id="vehicleNo" required />
+        <label>Customer</label>
+        <select name="customer_id" id="customerSelect" required></select>
       </div>
-
       <div class="form-group">
-        <label for="customerSelect">Customer</label>
-        <select id="customerSelect" required></select>
+        <label>Vehicle Number</label>
+        <input type="text" name="vehicle_number" required />
       </div>
-
       <div class="form-group">
-        <label for="productSelect">Product</label>
-        <select id="productSelect" required></select>
+        <label>Product</label>
+        <select name="product_id" id="productSelect" required></select>
       </div>
-
       <div class="form-group">
-        <label for="vendorSelect">Vendor</label>
-        <select id="vendorSelect" required></select>
+        <label>Vendor</label>
+        <select name="vendor_id" id="vendorSelect" required></select>
       </div>
-
       <div class="form-group">
-        <label for="length">Length (ft)</label>
-        <input type="number" id="length" step="0.01" required />
+        <label>Foot</label>
+        <input type="number" name="foot" id="foot" required />
       </div>
-
       <div class="form-group">
-        <label for="width">Width (ft)</label>
-        <input type="number" id="width" step="0.01" required />
+        <label>Az</label>
+        <input type="number" name="az" id="az" required />
       </div>
-
       <div class="form-group">
-        <label for="rate">Rate (PKR / sqft)</label>
-        <input type="number" id="rate" step="0.01" required />
+        <label>Size</label>
+        <input type="number" name="size" id="size" required />
       </div>
-
       <div class="form-group">
-        <label for="total_sqft">Total Sqft</label>
-        <input type="number" id="total_sqft" readonly />
+        <label>Total Sqft</label>
+        <input type="number" name="total_sqft" id="total_sqft" readonly />
       </div>
-
       <div class="form-group">
-        <label for="total_amount">Total Amount (PKR)</label>
-        <input type="number" id="total_amount" readonly />
+        <label>Price Level</label>
+        <select name="price_level" id="priceLevelSelect">
+          <option value="price">Price</option>
+          <option value="price1">Price 1</option>
+          <option value="price2">Price 2</option>
+          <option value="price3">Price 3</option>
+        </select>
       </div>
-
+      <div class="form-group">
+        <label>Rate</label>
+        <input type="number" name="rate" id="rate" required />
+      </div>
+      <div class="form-group">
+        <label>Total Amount</label>
+        <input type="number" name="total_amount" id="total_amount" readonly />
+      </div>
+      <div class="form-group">
+        <label>Remarks</label>
+        <textarea name="remarks"></textarea>
+      </div>
       <button type="submit">Save Delivery</button>
     </form>
+
+    <h2>All Deliveries</h2>
+    <table id="deliveryTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Slip #</th>
+          <th>Customer</th>
+          <th>Vehicle</th>
+          <th>Product</th>
+          <th>Vendor</th>
+          <th>Sqft</th>
+          <th>Rate</th>
+          <th>Amount</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
-  <script src="/js/delivery.js"></script>
+  <script src="add.js"></script>
 </body>
 </html>
