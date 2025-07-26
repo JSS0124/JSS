@@ -6,30 +6,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from public folder
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "../public"))); // ✅ fix path
 
-// API Routes
-const categoriesRouter = require("./categories");
-const deliveryRoutes = require("./deliveries");
-const deliverySingle = require("./delivery");
-const vendorRoutes = require("./vendors");
-const uploadRoutes = require("./uploadExcel");
-const productRoutes = require("./products");
-const customersRouter = require("./customers");
+// Your routes
+app.use("/api/categories", require("./categories"));
+app.use("/api/deliveries", require("./deliveries"));
+app.use("/api/delivery", require("./delivery"));
+app.use("/api/vendors", require("./vendors"));
+app.use("/api/upload", require("./uploadExcel"));
+app.use("/api/products", require("./products"));
+app.use("/api/customers", require("./customers"));
 
-// ✅ Correct path usage here
-app.use("/categories", categoriesRouter);
-app.use("/deliveries", deliveryRoutes);
-app.use("/delivery", deliverySingle);
-app.use("/vendors", vendorRoutes);
-app.use("/upload", uploadRoutes);
-app.use("/products", productRoutes);
-app.use("/customers", customersRouter);
-
-// Serve dashboard.html at root
+// Home route
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+  res.sendFile(path.join(__dirname, "../public", "dashboard.html"));
 });
 
 module.exports = app;
