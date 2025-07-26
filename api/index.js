@@ -18,6 +18,7 @@ const uploadRoutes = require("./uploadExcel");
 const productRoutes = require("./products");
 const customersRouter = require("./customers");
 
+// ✅ Correct path usage here
 app.use("/categories", categoryRoutes);
 app.use("/deliveries", deliveryRoutes);
 app.use("/delivery", deliverySingle);
@@ -25,7 +26,6 @@ app.use("/vendors", vendorRoutes);
 app.use("/upload", uploadRoutes);
 app.use("/products", productRoutes);
 app.use("/customers", customersRouter);
-
 
 // Serve dashboard.html at root
 app.get("/", (req, res) => {
