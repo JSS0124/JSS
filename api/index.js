@@ -2,12 +2,11 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 
-// Create Express app
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Static files (optional, works only in dev/local)
+// Static files (only works locally)
 app.use(express.static(path.join(__dirname, "../public")));
 
 // API Routes
@@ -19,10 +18,9 @@ app.use("/api/upload", require("./uploadExcel"));
 app.use("/api/products", require("./products"));
 app.use("/api/customers", require("./customers"));
 
-// Default Route (optional for homepage)
+// Health check
 app.get("/", (req, res) => {
-  res.send("API Root Working ✅");
+  res.send("✅ API Root Working");
 });
 
-// Export as Vercel serverless handler
 module.exports = app;
