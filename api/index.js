@@ -6,27 +6,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from public folder
+// Serve static files
 app.use(express.static(path.join(__dirname, "public")));
 
-// API Routes
-const categoryRoutes = require("./api/categories");
-const deliveryRoutes = require("./api/deliveries");
-const deliverySingle = require("./api/delivery");
-const vendorRoutes = require("./api/vendors");
-const uploadRoutes = require("./api/uploadExcel");
-const productRoutes = require("./api/products");
-const customersRouter = require("./api/customers");
+// Routes
+app.use("/api/categories", require("./api/categories"));
+app.use("/api/deliveries", require("./api/deliveries"));
+app.use("/api/delivery", require("./api/delivery"));
+app.use("/api/vendors", require("./api/vendors"));
+app.use("/api/upload", require("./api/uploadExcel"));
+app.use("/api/products", require("./api/products"));
+app.use("/api/customers", require("./api/customers"));
 
-app.use("/api/categories", categoryRoutes); // ✅ fixed typo
-app.use("/api/deliveries", deliveryRoutes);
-app.use("/api/delivery", deliverySingle);
-app.use("/api/vendors", vendorRoutes);
-app.use("/api/upload", uploadRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/customers", customersRouter);
-
-// Serve dashboard.html at root
+// Serve the dashboard
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "dashboard.html"));
 });
