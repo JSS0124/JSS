@@ -9,7 +9,7 @@ app.use(express.json());
 // Serve static files from public folder
 app.use(express.static(path.join(__dirname, "public")));
 
-// API Routes
+// ✅ Corrected paths
 const categoryRoutes = require("./api/categories");
 const deliveryRoutes = require("./api/deliveries");
 const deliverySingle = require("./api/delivery");
@@ -18,13 +18,14 @@ const uploadRoutes = require("./api/uploadExcel");
 const productRoutes = require("./api/products");
 const customersRouter = require("./api/customers");
 
-app.use("/api/categories", categoryRoutes); // ✅ fixed typo
-app.use("/api/deliveries", deliveryRoutes);
-app.use("/api/delivery", deliverySingle);
-app.use("/api/vendors", vendorRoutes);
-app.use("/api/upload", uploadRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/customers", customersRouter);
+// ✅ Corrected route mounts
+app.use("/categories", categoryRoutes);
+app.use("/deliveries", deliveryRoutes);
+app.use("/delivery", deliverySingle);
+app.use("/vendors", vendorRoutes);
+app.use("/upload", uploadRoutes);
+app.use("/products", productRoutes);
+app.use("/customers", customersRouter);
 
 // Serve dashboard.html at root
 app.get("/", (req, res) => {
