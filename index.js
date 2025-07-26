@@ -10,21 +10,21 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 // API Routes
-const categoryRoutes = require("./api/categories");
-const deliveryRoutes = require("./api/deliveries");
-const deliverySingle = require("./api/delivery");
-const vendorRoutes = require("./api/vendors");
-const uploadRoutes = require("./api/uploadExcel");
-const productRoutes = require("./api/products");
-const customersRouter = require("./api/customers");
+const categoryRoutes = require("./api/categories.js");
+const deliveryRoutes = require("./api/deliveries.js");
+const deliverySingle = require("./api/delivery.js");
+const vendorRoutes = require("./api/vendors.js");
+const uploadRoutes = require("./api/uploadExcel.js");
+const productRoutes = require("./api/products.js");
+const customersRouter = require("./api/customers.js");
 
-app.use("/api/categories", categoryRoutes); // ✅ fixed typo
-app.use("/api/deliveries", deliveryRoutes);
-app.use("/api/delivery", deliverySingle);
-app.use("/api/vendors", vendorRoutes);
-app.use("/api/upload", uploadRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/customers", customersRouter);
+app.use("/api/categories.js", categoryRoutes); // ✅ fixed typo
+app.use("/api/deliveries.js", deliveryRoutes);
+app.use("/api/delivery.js", deliverySingle);
+app.use("/api/vendors.js", vendorRoutes);
+app.use("/api/upload.js", uploadRoutes);
+app.use("/api/products.js", productRoutes);
+app.use("/api/customers.js", customersRouter);
 
 // Serve dashboard.html at root
 app.get("/", (req, res) => {
