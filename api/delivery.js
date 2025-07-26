@@ -136,3 +136,58 @@ router.put("/:id", async (req, res) => {
 });
 
 module.exports = router;
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadCustomers();
+  loadProducts();
+  loadVendors();
+});
+
+function loadCustomers() {
+  fetch("/api/customers")
+    .then((res) => res.json())
+    .then((data) => {
+      const customerSelect = document.getElementById("customerSelect");
+      customerSelect.innerHTML = '<option value="">Select Customer</option>';
+      data.forEach((cust) => {
+        const option = document.createElement("option");
+        option.value = cust.id;
+        option.textContent = cust.name.trim();
+        customerSelect.appendChild(option);
+      });
+    })
+    .catch((err) => console.error("Failed to load customers", err));
+}
+
+function loadProducts() {
+  fetch("/api/products")
+    .then((res) => res.json())
+    .then((data) => {
+      const productSelect = document.getElementById("productSelect");
+      productSelect.innerHTML = '<option value="">Select Product</option>';
+      data.forEach((prod) => {
+        const option = document.createElement("option");
+        option.value = prod.id;
+        option.textContent = prod.name;
+        productSelect.appendChild(option);
+      });
+    })
+    .catch((err) => console.error("Failed to load products", err));
+}
+
+function loadVendors() {
+  fetch("/api/vendors")
+    .then((res) => res.json())
+    .then((data) => {
+      const vendorSelect = document.getElementById("vendorSelect");
+      vendorSelect.innerHTML = '<option value="">Select Vendor</option>';
+      data.forEach((vend) => {
+        const option = document.createElement("option");
+        option.value = vend.id;
+        option.textContent = vend.name.trim();
+        vendorSelect.appendChild(option);
+      });
+    })
+    .catch((err) => console.error("Failed to load vendors", err));
+}
+
