@@ -10,13 +10,13 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 // API Routes
-const categoryRoutes = require("./api/categories");
-const deliveryRoutes = require("./api/deliveries");
-const deliverySingle = require("./api/delivery");
-const vendorRoutes = require("./api/vendors");
-const uploadRoutes = require("./api/uploadExcel");
-const productRoutes = require("./api/products");
-const customersRouter = require("./api/customers");
+const categoryRoutes = require("./api/api/categories");
+const deliveryRoutes = require("./api/api/deliveries");
+const deliverySingle = require("./api/api/delivery");
+const vendorRoutes = require("./api/api/vendors");
+const uploadRoutes = require("./api/api/uploadExcel");
+const productRoutes = require("./api/api/products");
+const customersRouter = require("./api/api/customers");
 
 app.use("/api/categories", categoryRoutes); // ✅ fixed typo
 app.use("/api/deliveries", deliveryRoutes);
