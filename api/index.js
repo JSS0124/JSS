@@ -18,13 +18,13 @@ const uploadRoutes = require("./api/api/uploadExcel");
 const productRoutes = require("./api/api/products");
 const customersRouter = require("./api/api/customers");
 
-app.use("/api/categories", categoryRoutes); // ✅ fixed typo
-app.use("/api/deliveries", deliveryRoutes);
-app.use("/api/delivery", deliverySingle);
-app.use("/api/vendors", vendorRoutes);
-app.use("/api/upload", uploadRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/customers", customersRouter);
+app.use("./api/api/categories", categoryRoutes); // ✅ fixed typo
+app.use("./api/api/deliveries", deliveryRoutes);
+app.use("./api/api/delivery", deliverySingle);
+app.use("./api/api/vendors", vendorRoutes);
+app.use("./api/api/upload", uploadRoutes);
+app.use("./api/api/products", productRoutes);
+app.use("./api/api/customers", customersRouter);
 
 // Serve dashboard.html at root
 app.get("/", (req, res) => {
