@@ -54,64 +54,67 @@
     </tbody>
   </table>
 
-  <script>
-    async function loadCategories() {
-      const res = await fetch("/api/categories");
-      const data = await res.json();
-      const table = document.getElementById("categoryTable");
-      table.innerHTML = "";
+ <script>
+  const BASE_URL = "https://jss-pied.vercel.app";
 
-      data.forEach(cat => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${cat.id}</td>
-          <td>${cat.code}</td>
-          <td>${cat.name}</td>
-          <td>
-            <button class="btn btn-danger" onclick="deleteCategory(${cat.id})">Delete</button>
-          </td>
-        `;
-        table.appendChild(row);
+  async function loadCategories() {
+    const res = await fetch(`${BASE_URL}/api/categories`);
+    const data = await res.json();
+    const table = document.getElementById("categoryTable");
+    table.innerHTML = "";
+
+    data.forEach(cat => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${cat.id}</td>
+        <td>${cat.code}</td>
+        <td>${cat.name}</td>
+        <td>
+          <button class="btn btn-danger" onclick="deleteCategory(${cat.id})">Delete</button>
+        </td>
+      `;
+      table.appendChild(row);
+    });
+  }
+
+  async function deleteCategory(id) {
+    if (confirm("Are you sure you want to delete this category?")) {
+      const res = await fetch(`${BASE_URL}/api/categories/${id}`, {
+        method: "DELETE",
       });
-    }
-
-    async function deleteCategory(id) {
-      if (confirm("Are you sure you want to delete this category?")) {
-        const res = await fetch(`/api/categories/${id}`, {
-          method: "DELETE",
-        });
-        const result = await res.json();
-        if (result.success) {
-          loadCategories();
-        } else {
-          alert("Failed to delete category");
-        }
-      }
-    }
-
-    document.getElementById("categoryForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const name = document.getElementById("categoryName").value.trim();
-      if (!name) return;
-
-      const res = await fetch("/api/categories", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ name })
-      });
-
       const result = await res.json();
-      if (res.ok) {
-        document.getElementById("categoryName").value = "";
+      if (result.success) {
         loadCategories();
       } else {
-        alert(result.error || "Failed to save category");
+        alert("Failed to delete category");
       }
+    }
+  }
+
+  document.getElementById("categoryForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("categoryName").value.trim();
+    if (!name) return;
+
+    const res = await fetch(`${BASE_URL}/api/categories`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ name })
     });
 
-    loadCategories(); // Load on page load
-  </script>
+    const result = await res.json();
+    if (res.ok) {
+      document.getElementById("categoryName").value = "";
+      loadCategories();
+    } else {
+      alert(result.error || "Failed to save category");
+    }
+  });
+
+  loadCategories(); // Load on page load
+</script>
+
 </body>
 </html>
