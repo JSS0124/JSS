@@ -1,4 +1,4 @@
-const BASE_URL = "https://jss-pied.vercel.app/api";
+const BASE_URL = "https://jss-pied.vercel.app";
 
 // Load dropdowns
 async function loadDropdowns() {
