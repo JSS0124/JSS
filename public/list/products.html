@@ -7,60 +7,61 @@
     body {
       font-family: Arial, sans-serif;
       padding: 2rem;
-      background: #f9f9f9;
+      background: #f7f7f7;
     }
     h1, h2 {
       text-align: center;
     }
     form {
+      text-align: center;
       margin-bottom: 2rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
     }
-    input, select {
+    input[type="text"], input[type="number"], select {
       padding: 8px;
-      border-radius: 4px;
+      width: 220px;
       border: 1px solid #ccc;
+      border-radius: 4px;
+      margin: 0 5px 10px 5px;
     }
     .btn {
-      padding: 8px 12px;
+      padding: 8px 14px;
       border: none;
-      border-radius: 4px;
       cursor: pointer;
+      border-radius: 4px;
+      margin-left: 8px;
     }
     .btn-primary {
-      background-color: #007bff;
+      background: #007bff;
       color: white;
     }
     .btn-danger {
-      background-color: #dc3545;
+      background: #dc3545;
       color: white;
     }
     table {
-      width: 100%;
       border-collapse: collapse;
+      width: 100%;
       background: white;
       border: 1px solid #ccc;
     }
     th, td {
-      padding: 10px;
+      padding: 10px 14px;
       border: 1px solid #ddd;
       text-align: center;
     }
     th {
-      background-color: #f1f1f1;
+      background-color: #f4f4f4;
     }
   </style>
 </head>
 <body>
+
   <h1>Product Management</h1>
 
   <form id="productForm">
-    <input type="text" id="code" placeholder="Code" required>
-    <input type="text" id="name" placeholder="Name" required>
-    <select id="category_id" required></select>
+    <input type="text" id="code" placeholder="Product Code" required>
+    <input type="text" id="name" placeholder="Product Name" required>
+    <select id="categoryId" required></select>
     <input type="number" id="price" placeholder="Price" required>
     <input type="number" id="price1" placeholder="Price 1">
     <input type="number" id="price2" placeholder="Price 2">
@@ -83,9 +84,7 @@
         <th>Action</th>
       </tr>
     </thead>
-    <tbody id="productTable">
-      <!-- Products will be loaded here -->
-    </tbody>
+    <tbody id="productTable"></tbody>
   </table>
 
   <script>
@@ -93,14 +92,14 @@
 
     async function loadCategories() {
       const res = await fetch(`${BASE_URL}/api/categories`);
-      const data = await res.json();
-      const select = document.getElementById("category_id");
-      select.innerHTML = '<option value="">Select Category</option>';
-      data.forEach(cat => {
-        const option = document.createElement("option");
-        option.value = cat.id;
-        option.textContent = cat.name;
-        select.appendChild(option);
+      const categories = await res.json();
+      const select = document.getElementById("categoryId");
+      select.innerHTML = `<option value="">Select Category</option>`;
+      categories.forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat.id;
+        opt.textContent = cat.name;
+        select.appendChild(opt);
       });
     }
 
@@ -109,19 +108,20 @@
       const data = await res.json();
       const table = document.getElementById("productTable");
       table.innerHTML = "";
-
-      data.forEach(p => {
+      data.forEach(prod => {
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td>${p.id}</td>
-          <td>${p.code}</td>
-          <td>${p.name}</td>
-          <td>${p.category_name || ""}</td>
-          <td>${p.price || ""}</td>
-          <td>${p.price1 || ""}</td>
-          <td>${p.price2 || ""}</td>
-          <td>${p.price3 || ""}</td>
-          <td><button class="btn btn-danger" onclick="deleteProduct(${p.id})">Delete</button></td>
+          <td>${prod.id}</td>
+          <td>${prod.code}</td>
+          <td>${prod.name}</td>
+          <td>${prod.category_name || "N/A"}</td>
+          <td>${prod.price}</td>
+          <td>${prod.price1}</td>
+          <td>${prod.price2}</td>
+          <td>${prod.price3}</td>
+          <td>
+            <button class="btn btn-danger" onclick="deleteProduct(${prod.id})">Delete</button>
+          </td>
         `;
         table.appendChild(row);
       });
@@ -129,12 +129,14 @@
 
     async function deleteProduct(id) {
       if (confirm("Are you sure you want to delete this product?")) {
-        const res = await fetch(`${BASE_URL}/api/products/${id}`, { method: "DELETE" });
+        const res = await fetch(`${BASE_URL}/api/products/${id}`, {
+          method: "DELETE",
+        });
         const result = await res.json();
         if (result.success) {
           loadProducts();
         } else {
-          alert("Failed to delete product");
+          alert("Failed to delete product.");
         }
       }
     }
@@ -143,29 +145,33 @@
       e.preventDefault();
       const code = document.getElementById("code").value.trim();
       const name = document.getElementById("name").value.trim();
-      const category_id = document.getElementById("category_id").value;
-      const price = parseFloat(document.getElementById("price").value || 0);
-      const price1 = parseFloat(document.getElementById("price1").value || 0);
-      const price2 = parseFloat(document.getElementById("price2").value || 0);
-      const price3 = parseFloat(document.getElementById("price3").value || 0);
+      const categoryId = document.getElementById("categoryId").value;
+      const price = parseFloat(document.getElementById("price").value);
+      const price1 = parseFloat(document.getElementById("price1").value) || 0;
+      const price2 = parseFloat(document.getElementById("price2").value) || 0;
+      const price3 = parseFloat(document.getElementById("price3").value) || 0;
+
+      if (!code || !name || !categoryId || isNaN(price)) return alert("Please fill all required fields");
 
       const res = await fetch(`${BASE_URL}/api/products`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, name, category_id, price, price1, price2, price3 })
+        body: JSON.stringify({ code, name, category_id: categoryId, price, price1, price2, price3 }),
       });
 
       const result = await res.json();
       if (res.ok) {
-        e.target.reset();
+        document.getElementById("productForm").reset();
         loadProducts();
       } else {
         alert(result.error || "Failed to save product");
       }
     });
 
+    // Initial load
     loadCategories();
     loadProducts();
   </script>
+
 </body>
 </html>
