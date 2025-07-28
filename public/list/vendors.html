@@ -123,7 +123,7 @@
 
   <script>
     async function loadVendors() {
-      const res = await fetch("/api/vendors");
+      const res = await fetch("/vendors");
       const vendors = await res.json();
 
       const table = document.getElementById("vendorTable");
@@ -148,7 +148,7 @@
       const contact_number = document.getElementById("contact_number").value;
       const supplier_type = document.getElementById("supplier_type").value;
 
-      const res = await fetch("/api/vendors", {
+      const res = await fetch("/vendors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, contact_person, contact_number, supplier_type })
@@ -166,7 +166,7 @@
     }
 
     async function deleteVendor(id) {
-      await fetch(`/api/vendors/${id}`, { method: "DELETE" });
+      await fetch(`/vendors/${id}`, { method: "DELETE" });
       loadVendors();
     }
 
