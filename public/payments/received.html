@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Received Payments</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f4;
+      padding: 2rem;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: #fff;
+      padding: 2rem 3rem;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      color: #333;
+      margin: 0;
+    }
+
+    .back-btn {
+      background-color: #6c757d;
+      color: white;
+      padding: 0.5rem 1rem;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 0.9rem;
+    }
+
+    .back-btn:hover {
+      background-color: #5a6268;
+    }
+
+    .payment-form {
+      background: #e8f5e8;
+      padding: 2rem;
+      border-radius: 10px;
+      margin-bottom: 2rem;
+      border: 1px solid #c3e6c3;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group.full-width {
+      grid-column: span 2;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+      color: #444;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    .btn {
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #218838;
+    }
+
+    .btn-success {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background-color: #0056b3;
+    }
+
+    .outstanding-info {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .outstanding-amount {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #856404;
+    }
+
+    .payment-history {
+      margin-top: 2rem;
+    }
+
+    .payment-table {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
+    }
+
+    th, td {
+      padding: 0.8rem;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+      color: #495057;
+    }
+
+    tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    .amount-cell {
+      font-weight: 600;
+      color: #28a745;
+      text-align: right;
+    }
+
+    .status-received {
+      background-color: #d4edda;
+      color: #155724;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .status-pending {
+      background-color: #fff3cd;
+      color: #856404;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 2rem;
+      color: #6c757d;
+      font-style: italic;
+    }
+
+    .payment-methods {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .payment-method {
+      flex: 1;
+      padding: 1rem;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .payment-method:hover {
+      border-color: #28a745;
+    }
+
+    .payment-method.selected {
+      border-color: #28a745;
+      background-color: #e8f5e8;
+    }
+
+    .payment-method i {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .summary-card {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .summary-card h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+    }
+
+    .summary-card .value {
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .payment-methods {
+        flex-direction: column;
+      }
+      
+      .summary-cards {
+        grid-template-columns: 1fr;
+      }
+      
+      .container {
+        padding: 1rem;
+      }
+      
+      table {
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>💰 Received Payments</h1>
+      <a href="/" class="back-btn">← Back to Dashboard</a>
+    </div>
+
+    <div class="summary-cards" id="summaryCards">
+      <div class="summary-card">
+        <h3>Today's Collections</h3>
+        <div class="value" id="todayCollections">₹0.00</div>
+      </div>
+      <div class="summary-card" style="background: linear-gradient(135deg, #007bff 0%, #6f42c1 100%);">
+        <h3>This Month</h3>
+        <div class="value" id="monthCollections">₹0.00</div>
+      </div>
+      <div class="summary-card" style="background: linear-gradient(135deg, #fd7e14 0%, #e83e8c 100%);">
+        <h3>Total Outstanding</h3>
+        <div class="value" id="totalOutstanding">₹0.00</div>
+      </div>
+    </div>
+
+    <div class="payment-form">
+      <h3>Record Payment Received</h3>
+      
+      <form id="paymentForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Payment Date</label>
+            <input type="date" id="paymentDate" required>
+          </div>
+          <div class="form-group">
+            <label>Customer</label>
+            <select id="customerSelect" onchange="updateOutstanding()" required>
+              <option value="">Select Customer</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Amount Received (₹)</label>
+            <input type="number" id="paymentAmount" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label>Invoice/Slip Reference</label>
+            <input type="text" id="invoiceReference" placeholder="Slip numbers or invoice reference">
+          </div>
+        </div>
+
+        <div class="outstanding-info" id="outstandingInfo" style="display: none;">
+          <strong>Customer Outstanding: </strong>
+          <span class="outstanding-amount" id="outstandingAmount">₹0.00</span>
+          <br><small>This amount will be reduced after payment is recorded</small>
+        </div>
+
+        <div class="payment-methods">
+          <div class="payment-method" onclick="selectPaymentMethod('cash')">
+            <span>💵</span>
+            <div>Cash</div>
+          </div>
+          <div class="payment-method" onclick="selectPaymentMethod('bank')">
+            <span>🏦</span>
+            <div>Bank Transfer</div>
+          </div>
+          <div class="payment-method" onclick="selectPaymentMethod('cheque')">
+            <span>📝</span>
+            <div>Cheque</div>
+          </div>
+          <div class="payment-method" onclick="selectPaymentMethod('online')">
+            <span>💻</span>
+            <div>Online Payment</div>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Reference Number</label>
+            <input type="text" id="referenceNumber" placeholder="Cheque/Transaction ID">
+          </div>
+          <div class="form-group">
+            <label>Bank/Source</label>
+            <input type="text" id="bankSource" placeholder="Bank name or payment source">
+          </div>
+          <div class="form-group full-width">
+            <label>Payment Notes</label>
+            <textarea id="paymentNotes" rows="3" placeholder="Additional notes about this payment"></textarea>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+          <button type="submit" class="btn btn-primary">💾 Record Payment</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="payment-history">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3>Payment History</h3>
+        <button class="btn btn-success" onclick="exportPayments()">📊 Export Report</button>
+      </div>
+      
+      <div class="payment-table">
+        <table id="paymentsTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Method</th>
+              <th>Reference</th>
+              <th>Invoice Ref</th>
+              <th>Amount (₹)</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        
+        <div class="no-data" id="noPayments" style="display: none;">
+          No payments received yet
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/payments/received.js"></script>
+</body>
+</html>
+

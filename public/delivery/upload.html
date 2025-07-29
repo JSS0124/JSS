@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload Deliveries with Excel</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f4;
+      padding: 2rem;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 2rem 3rem;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      color: #333;
+      margin: 0;
+    }
+
+    .back-btn {
+      background-color: #6c757d;
+      color: white;
+      padding: 0.5rem 1rem;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 0.9rem;
+    }
+
+    .back-btn:hover {
+      background-color: #5a6268;
+    }
+
+    .upload-section {
+      border: 2px dashed #007bff;
+      border-radius: 10px;
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 2rem;
+      background-color: #f8f9ff;
+    }
+
+    .upload-section.dragover {
+      border-color: #0056b3;
+      background-color: #e7f1ff;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .upload-btn {
+      background-color: #007bff;
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin: 1rem;
+    }
+
+    .upload-btn:hover {
+      background-color: #0056b3;
+    }
+
+    .download-template {
+      background-color: #28a745;
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      text-decoration: none;
+      display: inline-block;
+      margin: 1rem;
+    }
+
+    .download-template:hover {
+      background-color: #218838;
+    }
+
+    .instructions {
+      background-color: #e9ecef;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+    }
+
+    .instructions h3 {
+      margin-top: 0;
+      color: #495057;
+    }
+
+    .instructions ul {
+      margin-bottom: 0;
+    }
+
+    .instructions li {
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-section {
+      display: none;
+      margin-top: 2rem;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 20px;
+      background-color: #e9ecef;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: #007bff;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .progress-text {
+      text-align: center;
+      margin-top: 0.5rem;
+      font-weight: 600;
+    }
+
+    .results-section {
+      display: none;
+      margin-top: 2rem;
+      padding: 1.5rem;
+      border-radius: 8px;
+    }
+
+    .results-success {
+      background-color: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+
+    .results-error {
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+
+    .error-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 1rem;
+    }
+
+    .file-info {
+      background-color: #fff3cd;
+      border: 1px solid #ffeaa7;
+      color: #856404;
+      padding: 1rem;
+      border-radius: 5px;
+      margin-top: 1rem;
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      .header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Upload Deliveries with Excel</h1>
+      <a href="/" class="back-btn">← Back to Dashboard</a>
+    </div>
+
+    <div class="instructions">
+      <h3>📋 Instructions</h3>
+      <ul>
+        <li>Download the template Excel file below to see the required format</li>
+        <li>Fill in your delivery data following the exact column headers</li>
+        <li>Ensure customer names, vendor names, and product names match existing records</li>
+        <li>Date format should be YYYY-MM-DD (e.g., 2024-01-15)</li>
+        <li>Numeric fields (foot, az, size, rate) should contain only numbers</li>
+        <li>Upload the completed Excel file using the upload area below</li>
+      </ul>
+    </div>
+
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <a href="#" class="download-template" onclick="downloadTemplate()">📥 Download Template</a>
+    </div>
+
+    <div class="upload-section" id="uploadSection">
+      <div>
+        <h3>📤 Upload Excel File</h3>
+        <p>Drag and drop your Excel file here, or click to select</p>
+        <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls" />
+        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+          Choose File
+        </button>
+      </div>
+    </div>
+
+    <div class="file-info" id="fileInfo">
+      <strong>Selected file:</strong> <span id="fileName"></span><br>
+      <strong>Size:</strong> <span id="fileSize"></span><br>
+      <button class="upload-btn" onclick="uploadFile()" style="margin-top: 1rem;">
+        🚀 Upload and Process
+      </button>
+    </div>
+
+    <div class="progress-section" id="progressSection">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text" id="progressText">Uploading...</div>
+    </div>
+
+    <div class="results-section" id="resultsSection">
+      <h3 id="resultsTitle"></h3>
+      <div id="resultsContent"></div>
+      <div class="error-list" id="errorList"></div>
+    </div>
+  </div>
+
+  <script src="/delivery/upload.js"></script>
+</body>
+</html>
+
