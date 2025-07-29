@@ -62,25 +62,33 @@ module.exports = async (req, res) => {
 
       const result = await pool.query(`
         INSERT INTO deliveries (
-          date, slip_number, customer_id, customer_name, vendor_id, vendor_name,
-          product_id, product_name, length_ft, width_ft, total_sqft, rate, total_amount, notes
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+          date, slip_number, customer_id, customer_name, vehicle_number, vendor_id, vendor_name,
+          product_id, product_name, length_ft, width_ft, height_ft, total_sqft, rate, total_amount, notes
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
         RETURNING *
       `, [
         date,
         slip_number,
         customer_id,
         customer_name,
+        vehicle_number,
         vendor_id,
         vendor_name,
         product_id,
         product_name,
         foot, // Using foot as length_ft
         az,   // Using az as width_ft
+        size, // Using size as height_ft
         total_sqft,
         rate,
         total_amount,
         remarks || ''
+      ]);
+
+      res.status(201).json({ success: true, data: result.rows[0] });tal_sqft,
+        rate,
+        total_amount,
+        remarks || "",'
       ]);
 
       res.status(201).json({ success: true, data: result.rows[0] });
@@ -174,4 +182,3 @@ module.exports = async (req, res) => {
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 };
-
