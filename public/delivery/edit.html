@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Deliveries</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f4;
+      padding: 2rem;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      background: #fff;
+      padding: 2rem 3rem;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      color: #333;
+      margin: 0;
+    }
+
+    .back-btn {
+      background-color: #6c757d;
+      color: white;
+      padding: 0.5rem 1rem;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 0.9rem;
+    }
+
+    .back-btn:hover {
+      background-color: #5a6268;
+    }
+
+    .search-filter {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .search-filter input, .search-filter select {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 0.8rem;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+      color: #495057;
+    }
+
+    tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    .btn {
+      padding: 0.4rem 0.8rem;
+      margin: 0.2rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .btn-edit {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .btn-edit:hover {
+      background-color: #0056b3;
+    }
+
+    .btn-delete {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .btn-delete:hover {
+      background-color: #c82333;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 2rem;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 800px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: black;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+      color: #444;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    .full-width {
+      grid-column: span 2;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 2rem;
+    }
+
+    .btn-save {
+      background-color: #28a745;
+      color: white;
+      padding: 0.6rem 1.2rem;
+    }
+
+    .btn-save:hover {
+      background-color: #218838;
+    }
+
+    .btn-cancel {
+      background-color: #6c757d;
+      color: white;
+      padding: 0.6rem 1.2rem;
+    }
+
+    .btn-cancel:hover {
+      background-color: #5a6268;
+    }
+
+    @media (max-width: 768px) {
+      .search-filter {
+        flex-direction: column;
+      }
+      
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .modal-content {
+        width: 95%;
+        margin: 2% auto;
+      }
+      
+      table {
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Edit Deliveries</h1>
+      <a href="/" class="back-btn">← Back to Dashboard</a>
+    </div>
+
+    <div class="search-filter">
+      <input type="text" id="searchInput" placeholder="Search by slip number, customer, or vehicle...">
+      <input type="date" id="dateFilter" placeholder="Filter by date">
+      <select id="customerFilter">
+        <option value="">All Customers</option>
+      </select>
+      <select id="vendorFilter">
+        <option value="">All Vendors</option>
+      </select>
+    </div>
+
+    <table id="deliveryTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Slip #</th>
+          <th>Customer</th>
+          <th>Vehicle</th>
+          <th>Product</th>
+          <th>Vendor</th>
+          <th>Sqft</th>
+          <th>Rate</th>
+          <th>Amount</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Edit Delivery</h2>
+      <form id="editForm">
+        <input type="hidden" id="editId">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="editDate" required>
+          </div>
+          <div class="form-group">
+            <label>Slip Number</label>
+            <input type="text" id="editSlipNumber" required>
+          </div>
+          <div class="form-group">
+            <label>Customer</label>
+            <select id="editCustomer" required></select>
+          </div>
+          <div class="form-group">
+            <label>Vehicle Number</label>
+            <input type="text" id="editVehicle" required>
+          </div>
+          <div class="form-group">
+            <label>Product</label>
+            <select id="editProduct" required></select>
+          </div>
+          <div class="form-group">
+            <label>Vendor</label>
+            <select id="editVendor" required></select>
+          </div>
+          <div class="form-group">
+            <label>Foot</label>
+            <input type="number" id="editFoot" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label>Az</label>
+            <input type="number" id="editAz" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label>Size</label>
+            <input type="number" id="editSize" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label>Total Sqft</label>
+            <input type="number" id="editTotalSqft" step="0.01" readonly>
+          </div>
+          <div class="form-group">
+            <label>Price Level</label>
+            <select id="editPriceLevel">
+              <option value="price">Price</option>
+              <option value="price1">Price 1</option>
+              <option value="price2">Price 2</option>
+              <option value="price3">Price 3</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Rate</label>
+            <input type="number" id="editRate" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label>Total Amount</label>
+            <input type="number" id="editTotalAmount" step="0.01" readonly>
+          </div>
+          <div class="form-group full-width">
+            <label>Remarks</label>
+            <textarea id="editRemarks" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button type="button" class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-save">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/delivery/edit.js"></script>
+</body>
+</html>
+

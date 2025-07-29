@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Customers</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background: #f9f9f9;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.3rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      margin-right: 0.5rem;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    table {
+      width: 100%;
+      margin-top: 2rem;
+      border-collapse: collapse;
+      background: white;
+    }
+    th, td {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background: #007bff;
+      color: white;
+    }
+    .actions button {
+      background-color: #28a745;
+    }
+    .actions button.delete {
+      background-color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+  <h1>Customers / Clients</h1>
+
+  <form id="customerForm">
+    <input type="hidden" id="editId" />
+    <div class="form-group">
+      <label for="name">Customer Name *</label>
+      <input type="text" id="name" required />
+    </div>
+    <div class="form-group">
+      <label for="contact_person">Contact Person</label>
+      <input type="text" id="contact_person" />
+    </div>
+    <div class="form-group">
+      <label for="contact_number">Contact Number</label>
+      <input type="text" id="contact_number" />
+    </div>
+    <div class="form-group">
+      <label for="client_type">Client Type</label>
+      <select id="client_type">
+        <option value="Cash">Cash</option>
+        <option value="Credit">Credit</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="address">Address</label>
+      <input type="text" id="address" />
+    </div>
+    <div class="form-group">
+      <label for="price_level">Product Price Level</label>
+      <select id="price_level">
+        <option value="price">Price</option>
+        <option value="price1">Price 1</option>
+        <option value="price2">Price 2</option>
+        <option value="price3">Price 3</option>
+      </select>
+    </div>
+
+    <button type="submit">Save</button>
+    <button type="button" onclick="resetForm()">Cancel</button>
+  </form>
+
+  <table id="customersTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Contact Person</th>
+        <th>Contact</th>
+        <th>Type</th>
+        <th>Address</th>
+        <th>Price Level</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    async function fetchCustomers() {
+      const res = await fetch("/customers");
+      const data = await res.json();
+      const tbody = document.querySelector("#customersTable tbody");
+      tbody.innerHTML = "";
+
+      data.forEach(customer => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${customer.name}</td>
+          <td>${customer.contact_person || ""}</td>
+          <td>${customer.contact_number || ""}</td>
+          <td>${customer.client_type}</td>
+          <td>${customer.address || ""}</td>
+          <td>${customer.price_level}</td>
+          <td class="actions">
+            <button onclick='editCustomer(${JSON.stringify(customer)})'>Edit</button>
+            <button class="delete" onclick="deleteCustomer(${customer.id})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    async function addCustomer(e) {
+      e.preventDefault();
+      const id = document.getElementById("editId").value;
+      const payload = {
+        name: document.getElementById("name").value,
+        contact_person: document.getElementById("contact_person").value,
+        contact_number: document.getElementById("contact_number").value,
+        client_type: document.getElementById("client_type").value,
+        address: document.getElementById("address").value,
+        price_level: document.getElementById("price_level").value,
+      };
+
+      const res = await fetch(`/customers${id ? "/" + id : ""}`, {
+        method: id ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        resetForm();
+        fetchCustomers();
+      } else {
+        alert("Failed to save customer");
+      }
+    }
+
+    function editCustomer(customer) {
+      document.getElementById("editId").value = customer.id;
+      document.getElementById("name").value = customer.name;
+      document.getElementById("contact_person").value = customer.contact_person || "";
+      document.getElementById("contact_number").value = customer.contact_number || "";
+      document.getElementById("client_type").value = customer.client_type;
+      document.getElementById("address").value = customer.address || "";
+      document.getElementById("price_level").value = customer.price_level;
+    }
+
+    function resetForm() {
+      document.getElementById("customerForm").reset();
+      document.getElementById("editId").value = "";
+    }
+
+    async function deleteCustomer(id) {
+      if (confirm("Are you sure you want to delete this customer?")) {
+        await fetch(`/customers/${id}`, { method: "DELETE" });
+        fetchCustomers();
+      }
+    }
+
+    document.getElementById("customerForm").addEventListener("submit", addCustomer);
+    fetchCustomers();
+  </script>
+</body>
+</html>
