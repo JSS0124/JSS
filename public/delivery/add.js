@@ -4,9 +4,9 @@ const BASE_URL = "https://jss-pied.vercel.app";
 async function loadDropdowns() {
   try {
     const [customers, vendors, products] = await Promise.all([
-      fetch(`${BASE_URL}/customers`).then(res => res.json()),
-      fetch(`${BASE_URL}/vendors`).then(res => res.json()),
-      fetch(`${BASE_URL}/products`).then(res => res.json())
+      fetch(`${BASE_URL}/api/customers`).then(res => res.json()),
+      fetch(`${BASE_URL}/api/vendors`).then(res => res.json()),
+      fetch(`${BASE_URL}/api/products`).then(res => res.json())
     ]);
 
     const customerSelect = document.getElementById("customerSelect");
@@ -61,7 +61,7 @@ function updateRate() {
 // Load deliveries
 async function loadDeliveries() {
   try {
-    const res = await fetch(`${BASE_URL}/deliveries`);
+    const res = await fetch(`${BASE_URL}/api/delivery`);
     const contentType = res.headers.get("content-type");
 
     if (!contentType || !contentType.includes("application/json")) {
@@ -78,7 +78,7 @@ async function loadDeliveries() {
         <td>${d.date}</td>
         <td>${d.slip_number}</td>
         <td>${d.customer_name}</td>
-        <td>${d.vehicle_number}</td>
+        <td>${d.vehicle_number || ''}</td>
         <td>${d.product_name}</td>
         <td>${d.vendor_name}</td>
         <td>${d.total_sqft}</td>
@@ -97,7 +97,7 @@ async function loadDeliveries() {
 async function deleteDelivery(id) {
   if (confirm("Delete this delivery?")) {
     try {
-      const res = await fetch(`${BASE_URL}/deliveries/${id}`, { method: "DELETE" });
+      const res = await fetch(`${BASE_URL}/api/delivery?id=${id}`, { method: "DELETE" });
       const result = await res.json();
       if (result.success) loadDeliveries();
     } catch (err) {
@@ -119,8 +119,13 @@ document.getElementById("deliveryForm").addEventListener("submit", async (e) => 
   data.rate = parseFloat(data.rate);
   data.total_amount = parseFloat(document.getElementById("total_amount").value);
 
+  // Get selected IDs for customer, vendor, and product
+  data.customer_id = document.getElementById("customerSelect").value;
+  data.vendor_id = document.getElementById("vendorSelect").value;
+  data.product_id = document.getElementById("productSelect").value;
+
   try {
-    const res = await fetch(`${BASE_URL}/deliveries`, {
+    const res = await fetch(`${BASE_URL}/api/delivery`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
