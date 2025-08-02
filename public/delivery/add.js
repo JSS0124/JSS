@@ -117,18 +117,23 @@ document.getElementById("deliveryForm").addEventListener("submit", async (e) => 
   const formData = new FormData(e.target);
   const data = Object.fromEntries(formData.entries());
 
-  // Convert numeric fields
-  data.foot = parseFloat(data.foot) || 0;
-  data.az = parseFloat(data.az) || 0;
-  data.size = parseFloat(data.size) || 0;
-  data.total_sqft = parseFloat(document.getElementById("total_sqft").value) || 0;
-  data.rate = parseFloat(data.rate) || 0;
-  data.total_amount = parseFloat(document.getElementById("total_amount").value) || 0;
 
-  // Ensure IDs are included
-  data.customer_id = parseInt(data.customer_id) || null;
-  data.vendor_id = parseInt(data.vendor_id) || null;
-  data.product_id = parseInt(data.product_id) || null;
+// Convert numeric fields
+data.foot = parseFloat(data.foot) || 0;
+data.az = parseFloat(data.az) || 0;
+data.size = parseFloat(data.size) || 0;
+data.total_sqft = parseFloat(document.getElementById("total_sqft").value) || 0;
+data.rate = parseFloat(data.rate) || 0;
+data.total_amount = parseFloat(document.getElementById("total_amount").value) || 0;
+
+// Ensure IDs are included
+data.customer_id = parseInt(data.customer_id) || null;
+data.vendor_id = parseInt(data.vendor_id) || null;
+data.product_id = parseInt(data.product_id) || null;
+
+// Include vehicle_number
+data.vehicle_number = data.vehicle_number?.trim() || null;
+
 
   // Validate required fields
   if (!data.date || !data.slip_number || !data.customer_id || !data.vendor_id || !data.product_id) {
