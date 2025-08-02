@@ -8,7 +8,7 @@ router.get('/', async (req, res) => {
     const result = await pool.query(`
       SELECT 
         d.id, d.slip_number, d.date, d.length_ft, d.width_ft, d.total_sqft,
-        d.rate, d.total_amount, d.notes, d.created_at, d.updated_at,
+        d.rate, d.total_amount, d.notes, d.vehicle_number, d.created_at, d.updated_at,
         c.name AS customer_name,
         v.name AS vendor_name,
         p.name AS product_name
@@ -47,41 +47,12 @@ router.post('/', async (req, res) => {
       length_ft, width_ft, total_sqft, rate, total_amount, notes, vehicle_number
     ]);
 
-    res.status(201).json(result.rows[0]);
+    res.status(201).json({ success: true, delivery: result.rows[0] });
   } catch (err) {
     console.error('❌ Error creating delivery:', err);
-    res.status(500).json({ error: 'Failed to create delivery' });
+    res.status(500).json({ error: 'Failed to create delivery', details: err.message });
   }
 });
-
-router.post('/', async (req, res) => {
-  try {
-    const {
-      slip_number, date, customer_id, vendor_id, product_id,
-      length_ft, width_ft, total_sqft, rate, total_amount,
-      notes, vehicle_number
-    } = req.body;
-
-    const result = await pool.query(`
-      INSERT INTO deliveries 
-        (slip_number, date, customer_id, vendor_id, product_id, 
-         length_ft, width_ft, total_sqft, rate, total_amount, notes, vehicle_number, created_at)
-      VALUES 
-        ($1, $2, $3, $4, $5, 
-         $6, $7, $8, $9, $10, $11, $12, NOW())
-      RETURNING *;
-    `, [
-      slip_number, date, customer_id, vendor_id, product_id,
-      length_ft, width_ft, total_sqft, rate, total_amount, notes, vehicle_number
-    ]);
-
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error('❌ Error creating delivery:', err);
-    res.status(500).json({ error: 'Failed to create delivery' });
-  }
-});
-
 
 // DELETE: Delete delivery
 router.delete('/:id', async (req, res) => {
@@ -96,7 +67,7 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Delivery not found' });
     }
 
-    res.status(200).json({ message: '✅ Delivery deleted successfully' });
+    res.status(200).json({ success: true, message: '✅ Delivery deleted successfully' });
   } catch (err) {
     console.error('❌ Error deleting delivery:', err);
     res.status(500).json({ error: 'Failed to delete delivery' });
