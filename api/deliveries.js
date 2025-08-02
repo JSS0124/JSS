@@ -30,20 +30,21 @@ router.post('/', async (req, res) => {
   try {
     const {
       slip_number, date, customer_id, vendor_id, product_id,
-      length_ft, width_ft, total_sqft, rate, total_amount, notes
+      length_ft, width_ft, total_sqft, rate, total_amount,
+      notes, vehicle_number
     } = req.body;
 
     const result = await pool.query(`
       INSERT INTO deliveries 
         (slip_number, date, customer_id, vendor_id, product_id, 
-         length_ft, width_ft, total_sqft, rate, total_amount, notes, created_at)
+         length_ft, width_ft, total_sqft, rate, total_amount, notes, vehicle_number, created_at)
       VALUES 
         ($1, $2, $3, $4, $5, 
-         $6, $7, $8, $9, $10, $11, NOW())
+         $6, $7, $8, $9, $10, $11, $12, NOW())
       RETURNING *;
     `, [
       slip_number, date, customer_id, vendor_id, product_id,
-      length_ft, width_ft, total_sqft, rate, total_amount, notes
+      length_ft, width_ft, total_sqft, rate, total_amount, notes, vehicle_number
     ]);
 
     res.status(201).json(result.rows[0]);
@@ -53,46 +54,34 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT: Update delivery
-router.put('/:id', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    const { id } = req.params;
     const {
       slip_number, date, customer_id, vendor_id, product_id,
-      length_ft, width_ft, total_sqft, rate, total_amount, notes
+      length_ft, width_ft, total_sqft, rate, total_amount,
+      notes, vehicle_number
     } = req.body;
 
     const result = await pool.query(`
-      UPDATE deliveries SET
-        slip_number = $1,
-        date = $2,
-        customer_id = $3,
-        vendor_id = $4,
-        product_id = $5,
-        length_ft = $6,
-        width_ft = $7,
-        total_sqft = $8,
-        rate = $9,
-        total_amount = $10,
-        notes = $11,
-        updated_at = NOW()
-      WHERE id = $12
+      INSERT INTO deliveries 
+        (slip_number, date, customer_id, vendor_id, product_id, 
+         length_ft, width_ft, total_sqft, rate, total_amount, notes, vehicle_number, created_at)
+      VALUES 
+        ($1, $2, $3, $4, $5, 
+         $6, $7, $8, $9, $10, $11, $12, NOW())
       RETURNING *;
     `, [
       slip_number, date, customer_id, vendor_id, product_id,
-      length_ft, width_ft, total_sqft, rate, total_amount, notes, id
+      length_ft, width_ft, total_sqft, rate, total_amount, notes, vehicle_number
     ]);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Delivery not found' });
-    }
-
-    res.status(200).json(result.rows[0]);
+    res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error('❌ Error updating delivery:', err);
-    res.status(500).json({ error: 'Failed to update delivery' });
+    console.error('❌ Error creating delivery:', err);
+    res.status(500).json({ error: 'Failed to create delivery' });
   }
 });
+
 
 // DELETE: Delete delivery
 router.delete('/:id', async (req, res) => {
