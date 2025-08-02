@@ -1,110 +1,117 @@
-const { Pool } = require('pg');
+const express = require('express');
+const pool = require('../db');
+const router = express.Router();
 
-// Database connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+// GET: All deliveries
+router.get('/', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        d.id, d.slip_number, d.date, d.length_ft, d.width_ft, d.total_sqft,
+        d.rate, d.total_amount, d.notes, d.created_at, d.updated_at,
+        c.name AS customer_name,
+        v.name AS vendor_name,
+        p.name AS product_name
+      FROM deliveries d
+      LEFT JOIN customers c ON d.customer_id = c.id
+      LEFT JOIN vendors v ON d.vendor_id = v.id
+      LEFT JOIN products p ON d.product_id = p.id
+      ORDER BY d.date DESC, d.id DESC
+    `);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error('❌ Error fetching deliveries:', err);
+    res.status(500).json({ error: 'Failed to fetch deliveries' });
+  }
 });
 
-module.exports = async (req, res) => {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-
+// POST: Create delivery
+router.post('/', async (req, res) => {
   try {
-    if (req.method === 'GET') {
-      // Get all deliveries
-      const result = await pool.query('SELECT * FROM deliveries ORDER BY date DESC, id DESC');
-      res.status(200).json(result.rows);
-    } else if (req.method === 'POST') {
-      // Create new delivery
-      const {
-        slip_number,
-        date,
-        customer_id,
-        customer_name,
-        vendor_id,
-        vendor_name,
-        product_id,
-        product_name,
-        length_ft,
-        width_ft,
-        total_sqft,
-        rate,
-        total_amount,
-        notes
-      } = req.body;
+    const {
+      slip_number, date, customer_id, vendor_id, product_id,
+      length_ft, width_ft, total_sqft, rate, total_amount, notes
+    } = req.body;
 
-      const result = await pool.query(
-        `INSERT INTO deliveries 
-         (slip_number, date, customer_id, customer_name, vendor_id, vendor_name, 
-          product_id, product_name, length_ft, width_ft, total_sqft, rate, total_amount, notes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
-         RETURNING *`,
-        [slip_number, date, customer_id, customer_name, vendor_id, vendor_name,
-         product_id, product_name, length_ft, width_ft, total_sqft, rate, total_amount, notes]
-      );
+    const result = await pool.query(`
+      INSERT INTO deliveries 
+        (slip_number, date, customer_id, vendor_id, product_id, 
+         length_ft, width_ft, total_sqft, rate, total_amount, notes, created_at)
+      VALUES 
+        ($1, $2, $3, $4, $5, 
+         $6, $7, $8, $9, $10, $11, NOW())
+      RETURNING *;
+    `, [
+      slip_number, date, customer_id, vendor_id, product_id,
+      length_ft, width_ft, total_sqft, rate, total_amount, notes
+    ]);
 
-      res.status(201).json(result.rows[0]);
-    } else if (req.method === 'PUT') {
-      // Update delivery
-      const {
-        id,
-        slip_number,
-        date,
-        customer_id,
-        customer_name,
-        vendor_id,
-        vendor_name,
-        product_id,
-        product_name,
-        length_ft,
-        width_ft,
-        total_sqft,
-        rate,
-        total_amount,
-        notes
-      } = req.body;
-
-      const result = await pool.query(
-        `UPDATE deliveries SET 
-         slip_number = $1, date = $2, customer_id = $3, customer_name = $4, 
-         vendor_id = $5, vendor_name = $6, product_id = $7, product_name = $8,
-         length_ft = $9, width_ft = $10, total_sqft = $11, rate = $12, 
-         total_amount = $13, notes = $14, updated_at = CURRENT_TIMESTAMP
-         WHERE id = $15 RETURNING *`,
-        [slip_number, date, customer_id, customer_name, vendor_id, vendor_name,
-         product_id, product_name, length_ft, width_ft, total_sqft, rate, total_amount, notes, id]
-      );
-
-      if (result.rows.length === 0) {
-        res.status(404).json({ error: 'Delivery not found' });
-      } else {
-        res.status(200).json(result.rows[0]);
-      }
-    } else if (req.method === 'DELETE') {
-      // Delete delivery
-      const { id } = req.query;
-      
-      const result = await pool.query('DELETE FROM deliveries WHERE id = $1 RETURNING *', [id]);
-      
-      if (result.rows.length === 0) {
-        res.status(404).json({ error: 'Delivery not found' });
-      } else {
-        res.status(200).json({ message: 'Delivery deleted successfully' });
-      }
-    } else {
-      res.status(405).json({ error: 'Method not allowed' });
-    }
-  } catch (error) {
-    console.error('Database error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('❌ Error creating delivery:', err);
+    res.status(500).json({ error: 'Failed to create delivery' });
   }
-};
+});
 
+// PUT: Update delivery
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      slip_number, date, customer_id, vendor_id, product_id,
+      length_ft, width_ft, total_sqft, rate, total_amount, notes
+    } = req.body;
+
+    const result = await pool.query(`
+      UPDATE deliveries SET
+        slip_number = $1,
+        date = $2,
+        customer_id = $3,
+        vendor_id = $4,
+        product_id = $5,
+        length_ft = $6,
+        width_ft = $7,
+        total_sqft = $8,
+        rate = $9,
+        total_amount = $10,
+        notes = $11,
+        updated_at = NOW()
+      WHERE id = $12
+      RETURNING *;
+    `, [
+      slip_number, date, customer_id, vendor_id, product_id,
+      length_ft, width_ft, total_sqft, rate, total_amount, notes, id
+    ]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Delivery not found' });
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error('❌ Error updating delivery:', err);
+    res.status(500).json({ error: 'Failed to update delivery' });
+  }
+});
+
+// DELETE: Delete delivery
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(`
+      DELETE FROM deliveries WHERE id = $1 RETURNING *;
+    `, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Delivery not found' });
+    }
+
+    res.status(200).json({ message: '✅ Delivery deleted successfully' });
+  } catch (err) {
+    console.error('❌ Error deleting delivery:', err);
+    res.status(500).json({ error: 'Failed to delete delivery' });
+  }
+});
+
+module.exports = router;
