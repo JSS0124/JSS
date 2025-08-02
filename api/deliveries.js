@@ -1,61 +1,71 @@
-// deliveries.js
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 
-// Get all deliveries
-router.get('/', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM deliveries ORDER BY created_at DESC');
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error fetching deliveries:', error);
-    res.status(500).json({ success: false, error: 'Internal server error' });
-  }
-});
+// Add Delivery
+router.post('/add', async (req, res) => {
+    try {
+        const {
+            customer_id,
+            customer_name,
+            product_id,
+            product_name,
+            vendor_id,
+            vendor_name,
+            vehicle_number,
+            length_ft,
+            width_ft,
+            total_sqft,
+            rate,
+            total_amount,
+            slip_number,
+            date,
+            notes
+        } = req.body;
 
-// Add a new delivery
-router.post('/', async (req, res) => {
-  try {
-    const {
-      slip_number,
-      vehicle_number,
-      customer_id,
-      vendor_id,
-      product_id,
-      total_sqft,
-      rate,
-      total_amount,
-      foot,        // this will go in length_ft
-      az,          // this will go in width_ft
-      size,        // not used in DB, optional if needed in future
-      notes
-    } = req.body;
+        const result = await pool.query(
+            `INSERT INTO deliveries (
+                customer_id,
+                customer_name,
+                product_id,
+                product_name,
+                vendor_id,
+                vendor_name,
+                vehicle_number,
+                length_ft,
+                width_ft,
+                total_sqft,
+                rate,
+                total_amount,
+                slip_number,
+                date,
+                notes
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            RETURNING *`,
+            [
+                customer_id,
+                customer_name,
+                product_id,
+                product_name,
+                vendor_id,
+                vendor_name,
+                vehicle_number,
+                length_ft,
+                width_ft,
+                total_sqft,
+                rate,
+                total_amount,
+                slip_number,
+                date,
+                notes
+            ]
+        );
 
-    await pool.query(
-      `INSERT INTO deliveries
-        (slip_number, vehicle_number, customer_id, vendor_id, product_id, total_sqft, rate, total_amount, length_ft, width_ft, notes, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())`,
-      [
-        slip_number,
-        vehicle_number,
-        customer_id,
-        vendor_id,
-        product_id,
-        total_sqft,
-        rate,
-        total_amount,
-        foot,      // mapped to length_ft
-        az,        // mapped to width_ft
-        notes
-      ]
-    );
-
-    res.json({ success: true, message: 'Delivery saved successfully' });
-  } catch (error) {
-    console.error('Error saving delivery:', error);
-    res.status(500).json({ success: false, error: 'Internal server error', details: error.message });
-  }
+        res.status(201).json({ success: true, delivery: result.rows[0] });
+    } catch (err) {
+        console.error('Error saving delivery:', err.message);
+        res.status(500).json({ success: false, message: 'Error saving delivery' });
+    }
 });
 
 module.exports = router;
