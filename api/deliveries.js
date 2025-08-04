@@ -20,7 +20,7 @@ router.post('/add', async (req, res) => {
             total_amount,
             slip_number,
             date,
-            notes
+            notes,
             az_length
         } = req.body;
 
@@ -40,7 +40,7 @@ router.post('/add', async (req, res) => {
                 total_amount,
                 slip_number,
                 date,
-                notes
+                notes,
                 az_length
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
             RETURNING *`,
@@ -59,7 +59,7 @@ router.post('/add', async (req, res) => {
                 total_amount,
                 slip_number,
                 date,
-                notes
+                notes,
                 az_length
             ]
         );
