@@ -19,9 +19,8 @@ router.post('/add', async (req, res) => {
             rate,
             total_amount,
             slip_number,
-            date,
             notes,
-            az_length
+            height_ft  // Ensure this field is included
         } = req.body;
 
         const result = await pool.query(
@@ -39,12 +38,13 @@ router.post('/add', async (req, res) => {
                 rate,
                 total_amount,
                 slip_number,
-                date,
                 notes,
-                az_length
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-            RETURNING *`,
-            [
+                height_ft,
+                created_at,
+                updated_at
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW()
+            ) RETURNING *`, [
                 customer_id,
                 customer_name,
                 product_id,
@@ -58,16 +58,16 @@ router.post('/add', async (req, res) => {
                 rate,
                 total_amount,
                 slip_number,
-                date,
                 notes,
-                az_length
+                height_ft
             ]
         );
-
-        res.status(201).json({ success: true, delivery: result.rows[0] });
+        
+        // Respond with the inserted data
+        res.json(result.rows[0]);
     } catch (err) {
-        console.error('Error saving delivery:', err.message);
-        res.status(500).json({ success: false, message: 'Error saving delivery' });
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error', details: err.message });
     }
 });
 
