@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 
+// Add Delivery
 router.post('/add', async (req, res) => {
     try {
         const {
@@ -18,8 +19,8 @@ router.post('/add', async (req, res) => {
             rate,
             total_amount,
             slip_number,
-            notes,
-            height_ft
+            date,
+            notes
         } = req.body;
 
         const result = await pool.query(
@@ -37,14 +38,11 @@ router.post('/add', async (req, res) => {
                 rate,
                 total_amount,
                 slip_number,
-                notes,
-                height_ft,
-                created_at,
-                updated_at,
-                date
-            ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW(), $16
-            ) RETURNING *`, [
+                date,
+                notes
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            RETURNING *`,
+            [
                 customer_id,
                 customer_name,
                 product_id,
@@ -58,14 +56,16 @@ router.post('/add', async (req, res) => {
                 rate,
                 total_amount,
                 slip_number,
-                notes,
-                height_ft,
-                req.body.date
+                date,
+                notes
             ]
         );
-        res.json(result.rows[0]);
+
+        res.status(201).json({ success: true, delivery: result.rows[0] });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Internal server error', details: err.message });
+        console.error('Error saving delivery:', err.message);
+        res.status(500).json({ success: false, message: 'Error saving delivery' });
     }
 });
+
+module.exports = router;
