@@ -102,42 +102,38 @@ async function loadDeliveries() {
 async function deleteDelivery(id) {
   if (confirm("Delete this delivery?")) {
     try {
-      const res = await fetch(`${BASE_URL}/deliveries/${id}`, {
-        method: "DELETE"
-      });
-      if (res.ok) {
-        alert("Delivery deleted successfully!");
-        loadDeliveries();
-      } else {
-        alert("Failed to delete delivery.");
-      }
+      const res = await fetch(`${BASE_URL}/delivery?id=${id}`, { method: "DELETE" });
+      const result = await res.json();
+      if (result.success) loadDeliveries();
     } catch (err) {
       console.error("Error deleting delivery:", err);
     }
   }
 }
 
-// Submit new delivery
+// Submit form
 document.getElementById("deliveryForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+  const formData = new FormData(e.target);
+  const data = Object.fromEntries(formData.entries());
 
-  const data = {
-    date: document.getElementById("date").value,
-    slip_number: document.getElementById("slip_number").value,
-    customer_id: document.getElementById("customerSelect").value,
-    vendor_id: document.getElementById("vendorSelect").value,
-    product_id: document.getElementById("productSelect").value,
-    vehicle_number: document.getElementById("vehicle_number").value.trim(),
-    foot: document.getElementById("foot").value,
-    az: document.getElementById("az").value,
-    size: document.getElementById("size").value,
-    rate: document.getElementById("rate").value
-  };
 
-  // Ensure IDs are included
-  data.customer_id = parseInt(data.customer_id) || null;
-  data.vendor_id = parseInt(data.vendor_id) || null;
-  data.product_id = parseInt(data.product_id) || null;
+// Convert numeric fields
+data.foot = parseFloat(data.foot) || 0;
+data.az = parseFloat(data.az) || 0;
+data.size = parseFloat(data.size) || 0;
+data.total_sqft = parseFloat(document.getElementById("total_sqft").value) || 0;
+data.rate = parseFloat(data.rate) || 0;
+data.total_amount = parseFloat(document.getElementById("total_amount").value) || 0;
+
+// Ensure IDs are included
+data.customer_id = parseInt(data.customer_id) || null;
+data.vendor_id = parseInt(data.vendor_id) || null;
+data.product_id = parseInt(data.product_id) || null;
+
+// Include vehicle_number
+data.vehicle_number = data.vehicle_number?.trim() || null;
+
 
   // Validate required fields
   if (!data.date || !data.slip_number || !data.customer_id || !data.vendor_id || !data.product_id) {
@@ -146,7 +142,7 @@ document.getElementById("deliveryForm").addEventListener("submit", async (e) => 
   }
 
   try {
-    const res = await fetch(`${BASE_URL}/deliveries/add`, {
+    const res = await fetch(`${BASE_URL}/delivery`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
@@ -167,12 +163,37 @@ document.getElementById("deliveryForm").addEventListener("submit", async (e) => 
       e.target.reset();
       document.getElementById("total_sqft").value = "";
       document.getElementById("total_amount").value = "";
+      loadDeliveries();
+    } else {
+      alert("Error saving delivery: " + (result.error || "Unknown error"));
     }
   } catch (err) {
-    console.error("Error saving delivery:", err);
+    console.error("Save error:", err);
     alert("Error saving delivery: " + err.message);
   }
 });
 
-// Load dropdowns when page loads
-loadDropdowns();
+// Event listeners
+["foot", "az", "size", "rate"].forEach(id => {
+  const element = document.getElementById(id);
+  if (element) {
+    element.addEventListener("input", calculateTotals);
+  }
+});
+
+const priceLevelSelect = document.getElementById("priceLevelSelect");
+const productSelect = document.getElementById("productSelect");
+
+if (priceLevelSelect) {
+  priceLevelSelect.addEventListener("change", updateRate);
+}
+
+if (productSelect) {
+  productSelect.addEventListener("change", updateRate);
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  loadDropdowns();
+  loadDeliveries();
+});
