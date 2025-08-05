@@ -1,81 +1,48 @@
-const BASE = "/api"; // relative suffix works on Vercel
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadDropdown("customers");
+  await loadDropdown("vendors");
+  await loadDropdown("products");
 
-async function loadDropdowns() {
-  const [customers, vendors, products] = await Promise.all([
-    fetch(`${BASE}/customers`).then(r => r.json()),
-    fetch(`${BASE}/vendors`).then(r => r.json()),
-    fetch(`${BASE}/products`).then(r => r.json())
-  ]);
-  const c = document.getElementById("customerSelect");
-  const v = document.getElementById("vendorSelect");
-  const p = document.getElementById("productSelect");
-  customers.forEach(x => c.insertAdjacentHTML("beforeend", `<option value="${x.id}">${x.name}</option>`));
-  vendors.forEach(x => v.insertAdjacentHTML("beforeend", `<option value="${x.id}">${x.name}</option>`));
-  products.forEach(x => p.insertAdjacentHTML("beforeend", `<option value="${x.id}" data-price="${x.price}">${x.name}</option>`));
-}
+  document.getElementById("delivery-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-function calculateTotals() {
-  const foot = parseFloat(document.querySelector("[name='length_ft']").value) || 0;
-  const width = parseFloat(document.querySelector("[name='width_ft']").value) || 0;
-  const rate = parseFloat(document.querySelector("[name='rate']").value) || 0;
-  const sqft = (foot * width).toFixed(2);
-  document.querySelector("[name='total_sqft']").value = sqft;
-  document.querySelector("[name='total_amount']").value = (sqft * rate).toFixed(2);
-}
+    const data = {
+      slip_number: document.getElementById("slip_number").value,
+      vehicle_number: document.getElementById("vehicle_number").value,
+      customer_id: document.getElementById("customer_id").value,
+      vendor_id: document.getElementById("vendor_id").value,
+      product_id: document.getElementById("product_id").value,
+      length_ft: document.getElementById("length_ft").value,
+      width_ft: document.getElementById("width_ft").value,
+      height_ft: document.getElementById("height_ft").value,
+      date: document.getElementById("date").value,
+      notes: document.getElementById("notes").value,
+    };
 
-function updateRate() {
-  const sel = document.getElementById("productSelect");
-  const lvl = sel.selectedOptions[0]?.dataset.price;
-  document.querySelector("[name='rate']").value = lvl || '';
-  calculateTotals();
-}
-
-async function loadDeliveries() {
-  const res = await fetch(`${BASE}`);
-  const rows = await res.json();
-  const tbody = document.querySelector("#deliveryTable tbody");
-  tbody.innerHTML = "";
-  rows.forEach(d => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${d.date}</td><td>${d.slip_number}</td><td>${d.customer_name}</td><td>${d.vendor_name}</td>
-      <td>${d.product_name}</td><td>${d.vehicle_number}</td><td>${d.total_sqft}</td>
-      <td>${d.rate}</td><td>${d.total_amount}</td><td>${d.notes || ''}</td>`;
-    tbody.append(tr);
-  });
-}
-
-document.getElementById("deliveryForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  const data = Object.fromEntries(new FormData(e.target).entries());
-  calculateTotals();
-  try {
-    const res = await fetch(BASE, {
+    const res = await fetch("/api/deliveries", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
-    const json = await res.json();
-    if (res.ok && json.success) {
-      alert("Delivery saved");
-      e.target.reset();
-      loadDeliveries();
+
+    if (res.ok) {
+      alert("Delivery added successfully!");
+      location.reload();
     } else {
-      alert("Error: " + (json.message || json.error));
+      alert("Error saving delivery.");
     }
-  } catch(err) {
-    console.error(err);
-    alert("Network/server error");
-  }
+  });
 });
 
-["length_ft", "width_ft", "rate"].forEach(name => {
-  document.getElementsByName(name)[0].addEventListener("input", calculateTotals);
-});
+async function loadDropdown(endpoint) {
+  const res = await fetch(`/api/${endpoint}`);
+  const data = await res.json();
+  const select = document.getElementById(`${endpoint.slice(0, -1)}_id`);
 
-document.getElementById("productSelect").addEventListener("change", updateRate);
-
-document.addEventListener("DOMContentLoaded", () => {
-  loadDropdowns();
-  loadDeliveries();
-});
+  data.forEach((item) => {
+    const option = document.createElement("option");
+    option.value = item.id;
+    option.textContent = item.name;
+    select.appendChild(option);
+  });
+}
