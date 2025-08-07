@@ -49,34 +49,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Submit form
   const form = document.getElementById('deliveryForm');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+ form.addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-    const formData = new FormData(form);
-    const payload = Object.fromEntries(formData.entries());
+  const payload = {
+    customer: customerInput.value,
+    vendor: vendorInput.value,
+    product: productInput.value,
+    vehicleNumber: vehicleNumberInput.value,
+    length: parseFloat(lengthInput.value),
+    width: parseFloat(widthInput.value),
+    height: parseFloat(heightInput.value),
+    rate: parseFloat(rateInput.value),
+    totalSqft: parseFloat(totalSqftInput.value),
+    totalAmount: parseFloat(totalAmountInput.value),
+  };
 
-    try {
-      const res = await fetch(`${BASE_URL}/api/deliveries/add`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
+  try {
+    const res = await fetch(`${BASE_URL}/api/deliveries/add`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
 
-      const result = await res.json();
+    const result = await res.json();
 
-      if (!res.ok) {
-        throw new Error(result.error || 'Unknown error');
-      }
-
-      alert('✅ Delivery saved successfully!');
-      form.reset();
-      totalSqftInput.value = '';
-      totalAmountInput.value = '';
-    } catch (error) {
-      console.error('❌ Save error:', error);
-      alert('Failed to save delivery. See console for details.');
+    if (!res.ok) {
+      throw new Error(result.error || 'Unknown error');
     }
-  });
+
+    alert('✅ Delivery saved successfully!');
+    window.location.href = '/delivery/edit.html'; // Redirect to the listing page
+  } catch (error) {
+    console.error('❌ Save error:', error);
+    alert('Failed to save delivery. See console for details.');
+  }
 });
