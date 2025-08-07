@@ -56,13 +56,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const payload = Object.fromEntries(formData.entries());
 
     try {
-      const res = await fetch(`${BASE_URL}/api/deliveries/add`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
+  const res = await fetch(`${BASE_URL}/api/deliveries/add`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+  console.log('✅ Delivery saved:', data);
+} catch (err) {
+  console.error('❌ Save error:', err);
+}
 
       const result = await res.json();
 
