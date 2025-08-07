@@ -4,15 +4,16 @@ const BASE_URL = "https://jss-pied.vercel.app";
 async function loadDropdowns() {
   try {
     const [customers, vendors, products] = await Promise.all([
-      fetch(`${BASE_URL}/api/customers`).then(res => res.json()),
-      fetch(`${BASE_URL}/api/vendors`).then(res => res.json()),
-      fetch(`${BASE_URL}/api/products`).then(res => res.json())
+      fetch(`${BASE_URL}/customers`).then(res => res.json()),
+      fetch(`${BASE_URL}/vendors`).then(res => res.json()),
+      fetch(`${BASE_URL}/products`).then(res => res.json())
     ]);
 
     const customerSelect = document.getElementById("customerSelect");
     const vendorSelect = document.getElementById("vendorSelect");
     const productSelect = document.getElementById("productSelect");
 
+    // Clear existing options
     customerSelect.innerHTML = '<option value="">Select Customer</option>';
     vendorSelect.innerHTML = '<option value="">Select Vendor</option>';
     productSelect.innerHTML = '<option value="">Select Product</option>';
@@ -29,25 +30,25 @@ async function loadDropdowns() {
       productSelect.innerHTML += `<option value="${p.id}" data-price="${p.price}" data-price1="${p.price1}" data-price2="${p.price2}" data-price3="${p.price3}">${p.name}</option>`;
     });
   } catch (err) {
-    console.error("❌ Error loading dropdowns:", err);
+    console.error("Error loading dropdowns:", err);
   }
 }
 
 // Calculate sqft and total
 function calculateTotals() {
-  const length = parseFloat(document.getElementById("length_ft").value) || 0;
-  const width = parseFloat(document.getElementById("width_ft").value) || 0;
-  const height = parseFloat(document.getElementById("height_ft").value) || 0;
-  const rate = parseFloat(document.getElementById("rate").value) || 0;
+const length = parseFloat(document.getElementById("length_ft").value) || 0;
+const width = parseFloat(document.getElementById("width_ft").value) || 0;
+const height = parseFloat(document.getElementById("height_ft").value) || 0;
+const rate = parseFloat(document.getElementById("rate").value) || 0;
 
-  const sqft = length * width * height;
-  const total = sqft * rate;
+const sqft = length * width * height;
+const total = sqft * rate;
 
-  document.getElementById("total_sqft").value = sqft.toFixed(2);
-  document.getElementById("total_amount").value = total.toFixed(2);
+document.getElementById("total_sqft").value = sqft.toFixed(2);
+document.getElementById("total_amount").value = total.toFixed(2);
 }
 
-// Autofill rate on price level change
+// Autofill rate when price level/product changes
 function updateRate() {
   const selectedProduct = document.getElementById("productSelect").selectedOptions[0];
   const level = document.getElementById("priceLevelSelect").value;
@@ -62,14 +63,14 @@ function updateRate() {
   calculateTotals();
 }
 
-// Load deliveries into table
+// Load deliveries
 async function loadDeliveries() {
   try {
-    const res = await fetch(`${BASE_URL}/api/deliveries`);
+    const res = await fetch(`${BASE_URL}/deliveries`);
     const contentType = res.headers.get("content-type");
 
-    if (!res.ok || !contentType.includes("application/json")) {
-      throw new Error("Invalid response loading deliveries.");
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new Error("Invalid JSON response from server.");
     }
 
     const data = await res.json();
@@ -93,7 +94,7 @@ async function loadDeliveries() {
       tableBody.appendChild(row);
     });
   } catch (err) {
-    console.error("❌ Error loading deliveries:", err);
+    console.error("Error loading deliveries:", err);
   }
 }
 
@@ -101,38 +102,42 @@ async function loadDeliveries() {
 async function deleteDelivery(id) {
   if (confirm("Delete this delivery?")) {
     try {
-      const res = await fetch(`${BASE_URL}/api/deliveries?id=${id}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(`${BASE_URL}/delivery?id=${id}`, { method: "DELETE" });
       const result = await res.json();
       if (result.success) loadDeliveries();
     } catch (err) {
-      console.error("❌ Error deleting delivery:", err);
+      console.error("Error deleting delivery:", err);
     }
   }
 }
 
-// Handle form submission
+// Submit form
 document.getElementById("deliveryForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-
   const formData = new FormData(e.target);
   const data = Object.fromEntries(formData.entries());
 
-  data.length_ft = parseFloat(data.length_ft) || 0;
-  data.width_ft = parseFloat(data.width_ft) || 0;
-  data.height_ft = parseFloat(data.height_ft) || 0;
-  data.total_sqft = parseFloat(document.getElementById("total_sqft").value) || 0;
-  data.rate = parseFloat(data.rate) || 0;
-  data.total_amount = parseFloat(document.getElementById("total_amount").value) || 0;
 
-  data.customer_id = parseInt(data.customer_id) || null;
-  data.vendor_id = parseInt(data.vendor_id) || null;
-  data.product_id = parseInt(data.product_id) || null;
-  data.vehicle_number = data.vehicle_number?.trim() || "";
+// Convert numeric fields
+data.length_ft = parseFloat(data.length_ft) || 0;
+data.width_ft = parseFloat(data.width_ft) || 0;
+data.height_ft = parseFloat(data.height_ft) || 0;
+data.total_sqft = parseFloat(document.getElementById("total_sqft").value) || 0;
+data.rate = parseFloat(data.rate) || 0;
+data.total_amount = parseFloat(document.getElementById("total_amount").value) || 0;
 
+// Ensure IDs are included
+data.customer_id = parseInt(data.customer_id) || null;
+data.vendor_id = parseInt(data.vendor_id) || null;
+data.product_id = parseInt(data.product_id) || null;
+
+// Include vehicle_number
+data.vehicle_number = data.vehicle_number?.trim() || null;
+
+
+  // Validate required fields
   if (!data.date || !data.slip_number || !data.customer_id || !data.vendor_id || !data.product_id) {
-    alert("⚠️ Required fields are missing.");
+    alert("Please fill in all required fields (Date, Slip Number, Customer, Vendor, Product)");
     return;
   }
 
@@ -147,37 +152,48 @@ document.getElementById("deliveryForm").addEventListener("submit", async (e) => 
 
     if (!res.ok || !contentType.includes("application/json")) {
       const text = await res.text();
-      console.error("❌ Unexpected response:", text);
+      console.error("Unexpected response:", text);
       throw new Error("Invalid server response.");
     }
 
     const result = await res.json();
 
-    if (result.success || result.message) {
-      alert("✅ Delivery saved!");
+    if (result.success) {
+      alert("Delivery saved successfully!");
       e.target.reset();
       document.getElementById("total_sqft").value = "";
       document.getElementById("total_amount").value = "";
       loadDeliveries();
     } else {
-      alert("❌ Failed to save delivery.");
+      alert("Error saving delivery: " + (result.error || "Unknown error"));
     }
   } catch (err) {
-    console.error("❌ Save error:", err);
-    alert("❌ Error: " + err.message);
+    console.error("Save error:", err);
+    alert("Error saving delivery: " + err.message);
   }
 });
 
-// Attach event listeners
+// Event listeners
 ["length_ft", "width_ft", "height_ft", "rate"].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.addEventListener("input", calculateTotals);
+  const element = document.getElementById(id);
+  if (element) {
+    element.addEventListener("input", calculateTotals);
+  }
 });
 
-document.getElementById("priceLevelSelect")?.addEventListener("change", updateRate);
-document.getElementById("productSelect")?.addEventListener("change", updateRate);
+const priceLevelSelect = document.getElementById("priceLevelSelect");
+const productSelect = document.getElementById("productSelect");
 
-document.addEventListener("DOMContentLoaded", () => {
+if (priceLevelSelect) {
+  priceLevelSelect.addEventListener("change", updateRate);
+}
+
+if (productSelect) {
+  productSelect.addEventListener("change", updateRate);
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
   loadDropdowns();
   loadDeliveries();
 });
