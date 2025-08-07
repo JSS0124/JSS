@@ -1,79 +1,42 @@
-document.addEventListener('DOMContentLoaded', async () => {
-  const customerSelect = document.getElementById('customer');
-  const vendorSelect = document.getElementById('vendor');
-  const productSelect = document.getElementById('product');
-  const deliveryForm = document.getElementById('deliveryForm');
+import { pool } from '../../_db'; // adjust path if your _db.js is elsewhere
 
-  // Helper: Fetch and populate dropdown
-  async function populateDropdown(endpoint, selectElement, labelKey = 'name') {
-    try {
-      const res = await fetch(`/api/${endpoint}`);
-      const data = await res.json();
-      data.forEach(item => {
-        const option = document.createElement('option');
-        option.value = item.id;
-        option.textContent = item[labelKey] || item.name;
-        selectElement.appendChild(option);
-      });
-    } catch (err) {
-      console.error(`Failed to load ${endpoint}:`, err);
-    }
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  // Populate dropdowns
-  await populateDropdown('customers', customerSelect);
-  await populateDropdown('vendors', vendorSelect);
-  await populateDropdown('products', productSelect);
+  const {
+    customer_id,
+    vendor_id,
+    product_id,
+    vehicle_no,
+    slip_no,
+    length,
+    width,
+    height,
+    rate,
+    total_sqft,
+    total_amount
+  } = req.body;
 
-  // Auto-calculate total_sqft and total_amount
-  ['length', 'width', 'height', 'rate'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () => {
-      const length = parseFloat(document.getElementById('length').value) || 0;
-      const width = parseFloat(document.getElementById('width').value) || 0;
-      const height = parseFloat(document.getElementById('height').value) || 0;
-      const rate = parseFloat(document.getElementById('rate').value) || 0;
-      const total_sqft = length * width * height;
-      const total_amount = total_sqft * rate;
-      document.getElementById('total_sqft').value = total_sqft.toFixed(2);
-      document.getElementById('total_amount').value = total_amount.toFixed(2);
-    });
-  });
+  try {
+    const query = `
+      INSERT INTO deliveries 
+      (customer_id, vendor_id, product_id, vehicle_no, slip_no, length, width, height, rate, total_sqft, total_amount)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+      RETURNING id
+    `;
+    const values = [
+      customer_id, vendor_id, product_id,
+      vehicle_no, slip_no,
+      length, width, height, rate,
+      total_sqft, total_amount
+    ];
 
-  // Form submit handler
-  deliveryForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const deliveryData = {
-      customer_id: customerSelect.value,
-      vendor_id: vendorSelect.value,
-      product_id: productSelect.value,
-      vehicle_no: document.getElementById('vehicle_no').value,
-      slip_no: document.getElementById('slip_no').value,
-      length: parseFloat(document.getElementById('length').value),
-      width: parseFloat(document.getElementById('width').value),
-      height: parseFloat(document.getElementById('height').value),
-      rate: parseFloat(document.getElementById('rate').value),
-      total_sqft: parseFloat(document.getElementById('total_sqft').value),
-      total_amount: parseFloat(document.getElementById('total_amount').value)
-    };
-
-    try {
-      const res = await fetch('/api/deliveries/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(deliveryData)
-      });
-
-      const result = await res.json();
-      if (res.ok) {
-        alert('✅ Delivery saved!');
-        deliveryForm.reset();
-      } else {
-        alert(`❌ Error: ${result.error}`);
-      }
-    } catch (err) {
-      alert('❌ Network error while saving delivery.');
-      console.error(err);
-    }
-  });
-});
+    const result = await pool.query(query, values);
+    res.status(200).json({ success: true, id: result.rows[0].id });
+  } catch (err) {
+    console.error('Error saving delivery:', err);
+    res.status(500).json({ error: 'Failed to save delivery' });
+  }
+}
