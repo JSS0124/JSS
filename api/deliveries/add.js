@@ -2,41 +2,28 @@ import { sql } from '@vercel/postgres';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).send({ message: 'Only POST requests allowed' });
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
-    const {
-      slip_number,
-      vehicle_number,
-      customer_id,
-      vendor_id,
-      product_id,
-      length_ft,
-      width_ft,
-      height_ft,
-      rate,
-      total_sqft,
-      total_amount,
-      notes,
-      date
-    } = req.body;
+    const data = req.body;  // All fields from the form
+    console.log('Received delivery:', data);
 
-    const result = await sql`
+    // Example DB insert — adjust according to your schema
+    await sql`
       INSERT INTO deliveries (
         slip_number, vehicle_number, customer_id, vendor_id, product_id,
         length_ft, width_ft, height_ft, rate, total_sqft, total_amount, notes, date
+      ) VALUES (
+        ${data.slip_number}, ${data.vehicle_number}, ${data.customer_id}, ${data.vendor_id}, ${data.product_id},
+        ${data.length_ft}, ${data.width_ft}, ${data.height_ft}, ${data.rate}, ${data.total_sqft}, ${data.total_amount},
+        ${data.notes || ''}, ${data.date}
       )
-      VALUES (
-        ${slip_number}, ${vehicle_number}, ${customer_id}, ${vendor_id}, ${product_id},
-        ${length_ft}, ${width_ft}, ${height_ft}, ${rate}, ${total_sqft}, ${total_amount}, ${notes}, ${date}
-      )
-      RETURNING *;
     `;
 
-    res.status(200).json({ message: "Delivery saved", delivery: result.rows[0] });
+    return res.status(200).json({ success: true, message: 'Delivery saved' });
   } catch (error) {
-    console.error("❌ Insert error:", error);
-    res.status(500).json({ error: "Database insert failed", details: error.message });
+    console.error('DB error:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
