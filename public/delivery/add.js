@@ -32,9 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Load dropdowns
-  fetchAndPopulateDropdown('/api/products', productSelect);
-  fetchAndPopulateDropdown('/api/vendors', vendorSelect);
-  fetchAndPopulateDropdown('/api/customers', customerSelect);
+  fetchAndPopulateDropdown('/products', productSelect);
+  fetchAndPopulateDropdown('/vendors', vendorSelect);
+  fetchAndPopulateDropdown('/customers', customerSelect);
 
   // Calculate totals
   function calculateTotals() {
