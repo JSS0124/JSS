@@ -1,7 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const BASE_URL = 'https://jss-pied.vercel.app';
-
-  async function populateDropdown(url, selectId, labelKey) {
+async function populateDropdown(url, selectId, labelKey) {
   try {
     const response = await fetch(url);
     const data = await response.json();
