@@ -28,9 +28,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Load dropdowns
-  fetch(`${BASE_URL}/customers`);
-  fetch(`${BASE_URL}/vendors`));
-  fetch(`${BASE_URL}/products`);
+async function loadDropdowns() {
+  try {
+    const [customers, vendors, products] = await Promise.all([
+      fetch(`${BASE_URL}/customers`).then(res => res.json()),
+      fetch(`${BASE_URL}/vendors`).then(res => res.json()),
+      fetch(`${BASE_URL}/products`).then(res => res.json())
+    ]);
+
+    const customerSelect = document.getElementById("customerSelect");
+    const vendorSelect = document.getElementById("vendorSelect");
+    const productSelect = document.getElementById("productSelect");
 
   // Auto-calculate total_sqft and total_amount
   [lengthInput, widthInput, heightInput, rateInput].forEach(input => {
