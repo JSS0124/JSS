@@ -1,70 +1,88 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("deliveryForm");
-  const lengthInput = document.getElementById("length");
-  const widthInput = document.getElementById("width");
-  const heightInput = document.getElementById("height");
-  const rateInput = document.getElementById("rate");
-  const totalSqftField = document.getElementById("total_sqft");
-  const totalAmountField = document.getElementById("total_amount");
+// API base
+const API_BASE = '/api';
 
-  // Recalculate when dimensions or rate change
-  [lengthInput, widthInput, heightInput, rateInput].forEach(input => {
-    input.addEventListener("input", updateTotals);
-  });
+// Load dropdown data
+async function loadDropdown(endpoint, selectId, labelKey = 'name') {
+  try {
+    const response = await fetch(`${API_BASE}/${endpoint}`);
+    if (!response.ok) throw new Error('Failed to fetch ' + endpoint);
 
-  function updateTotals() {
-    const length = parseFloat(lengthInput.value) || 0;
-    const width = parseFloat(widthInput.value) || 0;
-    const height = parseFloat(heightInput.value) || 0;
-    const rate = parseFloat(rateInput.value) || 0;
-
-    const totalSqft = length * width * height;
-    const totalAmount = totalSqft * rate;
-
-    totalSqftField.value = totalSqft.toFixed(2);
-    totalAmountField.value = totalAmount.toFixed(2);
+    const data = await response.json();
+    const select = document.getElementById(selectId);
+    data.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item.id;
+      option.textContent = item[labelKey] || item.name;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.error(`Error loading ${endpoint}:`, error);
   }
+}
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+// Load dropdowns on page load
+window.addEventListener('DOMContentLoaded', () => {
+  loadDropdown('products', 'product');
+  loadDropdown('vendors', 'vendor');
+  loadDropdown('customers', 'customer');
+});
 
-    const data = {
-      slip_number: document.getElementById("slip_number").value,
-      customer_id: document.getElementById("customer_id").value,
-      vendor_id: document.getElementById("vendor_id").value,
-      product_id: document.getElementById("product_id").value,
-      vehicle_number: document.getElementById("vehicle_number").value,
-      length: parseFloat(lengthInput.value),
-      width: parseFloat(widthInput.value),
-      height: parseFloat(heightInput.value),
-      rate: parseFloat(rateInput.value),
-      total_sqft: parseFloat(totalSqftField.value),
-      total_amount: parseFloat(totalAmountField.value),
-    };
+// Calculate sqft and amount
+function calculateTotals() {
+  const length = parseFloat(document.getElementById('length').value) || 0;
+  const width = parseFloat(document.getElementById('width').value) || 0;
+  const height = parseFloat(document.getElementById('height').value) || 0;
+  const rate = parseFloat(document.getElementById('rate').value) || 0;
 
-    try {
-      const response = await fetch("/api/deliveries/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+  const total_sqft = length * width * height;
+  const total_amount = total_sqft * rate;
 
-      if (!response.ok) {
-        const text = await response.text();
-        console.error("Server error:", text);
-        throw new Error(`Server returned ${response.status}`);
-      }
+  document.getElementById('total_sqft').value = total_sqft.toFixed(2);
+  document.getElementById('total_amount').value = total_amount.toFixed(2);
+}
 
-      const result = await response.json();
-      console.log("Delivery saved:", result);
-      alert("✅ Delivery saved successfully!");
+// Attach calculation events
+['length', 'width', 'height', 'rate'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calculateTotals);
+});
 
-      form.reset();
-      updateTotals();
+// Form submission
+document.getElementById('delivery-form').addEventListener('submit', async function (e) {
+  e.preventDefault();
 
-    } catch (err) {
-      console.error("Save error:", err);
-      alert("❌ Error saving delivery.");
+  const formData = {
+    customer_id: document.getElementById('customer').value,
+    vendor_id: document.getElementById('vendor').value,
+    product_id: document.getElementById('product').value,
+    slip_number: document.getElementById('slip_number').value,
+    vehicle_number: document.getElementById('vehicle_number').value,
+    length: parseFloat(document.getElementById('length').value),
+    width: parseFloat(document.getElementById('width').value),
+    height: parseFloat(document.getElementById('height').value),
+    rate: parseFloat(document.getElementById('rate').value),
+    total_sqft: parseFloat(document.getElementById('total_sqft').value),
+    total_amount: parseFloat(document.getElementById('total_amount').value),
+    delivery_date: document.getElementById('delivery_date').value
+  };
+
+  try {
+    const response = await fetch(`${API_BASE}/deliveries/add`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error('Error saving delivery: ' + errorText);
     }
-  });
+
+    alert('✅ Delivery saved successfully!');
+    document.getElementById('delivery-form').reset();
+    document.getElementById('total_sqft').value = '';
+    document.getElementById('total_amount').value = '';
+  } catch (err) {
+    console.error('Save error:', err);
+    alert('❌ Failed to save delivery. See console for details.');
+  }
 });
