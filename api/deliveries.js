@@ -67,3 +67,5 @@ router.post('/add', async (req, res) => {
         res.status(500).json({ success: false, message: 'Error saving delivery' });
     }
 });
+
+module.exports = router;
