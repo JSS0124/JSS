@@ -132,4 +132,8 @@ if (document.getElementById("priceLevelSelect")) {
 if (document.getElementById("productSelect")) {
   document.getElementById("productSelect").addEventListener("change", updateRate);
 }
-);
+
+// Init
+document.addEventListener("DOMContentLoaded", () => {
+  loadDropdowns();
+});   
