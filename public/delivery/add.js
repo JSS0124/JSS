@@ -36,16 +36,16 @@ async function loadDropdowns() {
 
 // Calculate sqft and total
 function calculateTotals() {
-  const foot = parseFloat(document.getElementById("foot").value) || 0;
-  const az = parseFloat(document.getElementById("az").value) || 0;
-  const size = parseFloat(document.getElementById("size").value) || 0;
-  const rate = parseFloat(document.getElementById("rate").value) || 0;
+const length = parseFloat(document.getElementById("length_ft").value) || 0;
+const width = parseFloat(document.getElementById("width_ft").value) || 0;
+const height = parseFloat(document.getElementById("height_ft").value) || 0;
+const rate = parseFloat(document.getElementById("rate").value) || 0;
 
-  const sqft = foot * az * size;
-  const total = sqft * rate;
+const sqft = length * width * height;
+const total = sqft * rate;
 
-  document.getElementById("total_sqft").value = sqft.toFixed(2);
-  document.getElementById("total_amount").value = total.toFixed(2);
+document.getElementById("total_sqft").value = sqft.toFixed(2);
+document.getElementById("total_amount").value = total.toFixed(2);
 }
 
 // Autofill rate when price level/product changes
@@ -119,9 +119,9 @@ document.getElementById("deliveryForm").addEventListener("submit", async (e) => 
 
 
 // Convert numeric fields
-data.foot = parseFloat(data.foot) || 0;
-data.az = parseFloat(data.az) || 0;
-data.size = parseFloat(data.size) || 0;
+data.length_ft = parseFloat(data.length_ft) || 0;
+data.width_ft = parseFloat(data.width_ft) || 0;
+data.height_ft = parseFloat(data.height_ft) || 0;
 data.total_sqft = parseFloat(document.getElementById("total_sqft").value) || 0;
 data.rate = parseFloat(data.rate) || 0;
 data.total_amount = parseFloat(document.getElementById("total_amount").value) || 0;
@@ -174,7 +174,7 @@ data.vehicle_number = data.vehicle_number?.trim() || null;
 });
 
 // Event listeners
-["foot", "az", "size", "rate"].forEach(id => {
+["length_ft", "width_ft", "height_ft", "rate"].forEach(id => {
   const element = document.getElementById(id);
   if (element) {
     element.addEventListener("input", calculateTotals);
