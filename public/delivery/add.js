@@ -4,9 +4,9 @@ const BASE_URL = "https://jss-pied.vercel.app";
 async function loadDropdowns() {
   try {
     const [customers, vendors, products] = await Promise.all([
-      fetch(${BASE_URL}/customers).then(res => res.json()),
-      fetch(${BASE_URL}/vendors).then(res => res.json()),
-      fetch(${BASE_URL}/products).then(res => res.json())
+      fetch(`${BASE_URL}/customers`).then(res => res.json()),
+      fetch(`${BASE_URL}/vendors`).then(res => res.json()),
+      fetch(`${BASE_URL}/products`).then(res => res.json())
     ]);
 
     const customerSelect = document.getElementById("customerSelect");
@@ -19,15 +19,15 @@ async function loadDropdowns() {
     productSelect.innerHTML = '<option value="">Select Product</option>';
 
     customers.forEach(c => {
-      customerSelect.innerHTML += <option value="${c.id}">${c.name}</option>;
+      customerSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
     });
 
     vendors.forEach(v => {
-      vendorSelect.innerHTML += <option value="${v.id}">${v.name}</option>;
+      vendorSelect.innerHTML += `<option value="${v.id}">${v.name}</option>`;
     });
 
     products.forEach(p => {
-      productSelect.innerHTML += <option value="${p.id}" data-price="${p.price}" data-price1="${p.price1}" data-price2="${p.price2}" data-price3="${p.price3}">${p.name}</option>;
+      productSelect.innerHTML += `<option value="${p.id}" data-price="${p.price}" data-price1="${p.price1}" data-price2="${p.price2}" data-price3="${p.price3}">${p.name}</option>`;
     });
   } catch (err) {
     console.error("Error loading dropdowns:", err);
@@ -66,7 +66,7 @@ function updateRate() {
 // Load deliveries
 async function loadDeliveries() {
   try {
-    const res = await fetch(${BASE_URL}/deliveries);
+    const res = await fetch(`${BASE_URL}/deliveries`);
     const contentType = res.headers.get("content-type");
 
     if (!contentType || !contentType.includes("application/json")) {
@@ -79,7 +79,7 @@ async function loadDeliveries() {
 
     data.forEach(d => {
       const row = document.createElement("tr");
-      row.innerHTML = 
+      row.innerHTML = `
         <td>${d.date}</td>
         <td>${d.slip_number}</td>
         <td>${d.customer_name}</td>
@@ -90,7 +90,7 @@ async function loadDeliveries() {
         <td>${d.rate}</td>
         <td>${d.total_amount}</td>
         <td><button onclick="deleteDelivery(${d.id})">Delete</button></td>
-      ;
+      `;
       tableBody.appendChild(row);
     });
   } catch (err) {
@@ -102,7 +102,7 @@ async function loadDeliveries() {
 async function deleteDelivery(id) {
   if (confirm("Delete this delivery?")) {
     try {
-      const res = await fetch(${BASE_URL}/delivery?id=${id}, { method: "DELETE" });
+      const res = await fetch(`${BASE_URL}/delivery?id=${id}`, { method: "DELETE" });
       const result = await res.json();
       if (result.success) loadDeliveries();
     } catch (err) {
@@ -142,7 +142,7 @@ data.vehicle_number = data.vehicle_number?.trim() || null;
   }
 
   try {
-    const res = await fetch(${BASE_URL}/delivery, {
+    const res = await fetch(`${BASE_URL}/delivery`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
