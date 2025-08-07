@@ -63,54 +63,6 @@ function updateRate() {
   calculateTotals();
 }
 
-// Load deliveries table
-async function loadDeliveries() {
-  try {
-    const res = await fetch(`${BASE_URL}/deliveries`);
-    const contentType = res.headers.get("content-type");
-
-    if (!contentType || !contentType.includes("application/json")) {
-      throw new Error("Invalid JSON response from server.");
-    }
-
-    const data = await res.json();
-    const tableBody = document.querySelector("#deliveryTable tbody");
-    tableBody.innerHTML = "";
-
-    data.forEach(d => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${d.date}</td>
-        <td>${d.slip_number}</td>
-        <td>${d.customer_name}</td>
-        <td>${d.vehicle_number || ''}</td>
-        <td>${d.product_name}</td>
-        <td>${d.vendor_name}</td>
-        <td>${d.total_sqft}</td>
-        <td>${d.rate}</td>
-        <td>${d.total_amount}</td>
-        <td><button onclick="deleteDelivery(${d.id})">Delete</button></td>
-      `;
-      tableBody.appendChild(row);
-    });
-  } catch (err) {
-    console.error("❌ Error loading deliveries:", err);
-  }
-}
-
-// Delete delivery
-async function deleteDelivery(id) {
-  if (confirm("Delete this delivery?")) {
-    try {
-      const res = await fetch(`${BASE_URL}/delivery?id=${id}`, { method: "DELETE" });
-      const result = await res.json();
-      if (result.success) loadDeliveries();
-    } catch (err) {
-      console.error("❌ Error deleting delivery:", err);
-    }
-  }
-}
-
 // Handle form submission
 document.getElementById("deliveryForm").addEventListener("submit", async (e) => {
   e.preventDefault();
