@@ -1,24 +1,51 @@
-// File: api/deliveries/add.js
+// /api/deliveries/add.js
+
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // for Neon
+  },
+});
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Only POST allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     const data = req.body;
 
-    // Validate input (example)
-    if (!data.customer || !data.vendor || !data.product) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
+    const {
+      customer,
+      vendor,
+      product,
+      vehicleNumber,
+      length,
+      width,
+      height,
+      rate,
+      totalSqft,
+      totalAmount,
+    } = data;
 
-    // Save to DB logic here (you mentioned you're using Neon + PostgreSQL)
-    // const result = await saveToDatabase(data);
+    const query = `
+      INSERT INTO deliveries (
+        customer, vendor, product, vehicle_number,
+        length, width, height, rate, total_sqft, total_amount
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+    `;
 
-    res.status(200).json({ message: 'Delivery saved successfully' });
-  } catch (error) {
-    console.error('❌ API error:', error);
-    res.status(500).json({ message: 'Server error' });
+    await pool.query(query, [
+      customer, vendor, product, vehicleNumber,
+      length, width, height, rate, totalSqft, totalAmount
+    ]);
+
+    res.status(200).json({ success: true, message: 'Delivery saved' });
+
+  } catch (err) {
+    console.error('❌ DB Error:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
   }
 }
