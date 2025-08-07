@@ -1,199 +1,70 @@
-const BASE_URL = "https://jss-pied.vercel.app";
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("deliveryForm");
+  const lengthInput = document.getElementById("length");
+  const widthInput = document.getElementById("width");
+  const heightInput = document.getElementById("height");
+  const rateInput = document.getElementById("rate");
+  const totalSqftField = document.getElementById("total_sqft");
+  const totalAmountField = document.getElementById("total_amount");
 
-// Load dropdowns
-async function loadDropdowns() {
-  try {
-    const [customers, vendors, products] = await Promise.all([
-      fetch(`${BASE_URL}/customers`).then(res => res.json()),
-      fetch(`${BASE_URL}/vendors`).then(res => res.json()),
-      fetch(`${BASE_URL}/products`).then(res => res.json())
-    ]);
+  // Recalculate when dimensions or rate change
+  [lengthInput, widthInput, heightInput, rateInput].forEach(input => {
+    input.addEventListener("input", updateTotals);
+  });
 
-    const customerSelect = document.getElementById("customerSelect");
-    const vendorSelect = document.getElementById("vendorSelect");
-    const productSelect = document.getElementById("productSelect");
+  function updateTotals() {
+    const length = parseFloat(lengthInput.value) || 0;
+    const width = parseFloat(widthInput.value) || 0;
+    const height = parseFloat(heightInput.value) || 0;
+    const rate = parseFloat(rateInput.value) || 0;
 
-    // Clear existing options
-    customerSelect.innerHTML = '<option value="">Select Customer</option>';
-    vendorSelect.innerHTML = '<option value="">Select Vendor</option>';
-    productSelect.innerHTML = '<option value="">Select Product</option>';
+    const totalSqft = length * width * height;
+    const totalAmount = totalSqft * rate;
 
-    customers.forEach(c => {
-      customerSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-    });
-
-    vendors.forEach(v => {
-      vendorSelect.innerHTML += `<option value="${v.id}">${v.name}</option>`;
-    });
-
-    products.forEach(p => {
-      productSelect.innerHTML += `<option value="${p.id}" data-price="${p.price}" data-price1="${p.price1}" data-price2="${p.price2}" data-price3="${p.price3}">${p.name}</option>`;
-    });
-  } catch (err) {
-    console.error("Error loading dropdowns:", err);
-  }
-}
-
-// Calculate sqft and total
-function calculateTotals() {
-const length = parseFloat(document.getElementById("length_ft").value) || 0;
-const width = parseFloat(document.getElementById("width_ft").value) || 0;
-const height = parseFloat(document.getElementById("height_ft").value) || 0;
-const rate = parseFloat(document.getElementById("rate").value) || 0;
-
-const sqft = length * width * height;
-const total = sqft * rate;
-
-document.getElementById("total_sqft").value = sqft.toFixed(2);
-document.getElementById("total_amount").value = total.toFixed(2);
-}
-
-// Autofill rate when price level/product changes
-function updateRate() {
-  const selectedProduct = document.getElementById("productSelect").selectedOptions[0];
-  const level = document.getElementById("priceLevelSelect").value;
-  const rateValue = selectedProduct?.dataset[level];
-
-  if (rateValue && !isNaN(rateValue)) {
-    document.getElementById("rate").value = rateValue;
-  } else {
-    document.getElementById("rate").value = "";
+    totalSqftField.value = totalSqft.toFixed(2);
+    totalAmountField.value = totalAmount.toFixed(2);
   }
 
-  calculateTotals();
-}
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-// Load deliveries
-async function loadDeliveries() {
-  try {
-    const res = await fetch(`${BASE_URL}/deliveries`);
-    const contentType = res.headers.get("content-type");
+    const data = {
+      slip_number: document.getElementById("slip_number").value,
+      customer_id: document.getElementById("customer_id").value,
+      vendor_id: document.getElementById("vendor_id").value,
+      product_id: document.getElementById("product_id").value,
+      vehicle_number: document.getElementById("vehicle_number").value,
+      length: parseFloat(lengthInput.value),
+      width: parseFloat(widthInput.value),
+      height: parseFloat(heightInput.value),
+      rate: parseFloat(rateInput.value),
+      total_sqft: parseFloat(totalSqftField.value),
+      total_amount: parseFloat(totalAmountField.value),
+    };
 
-    if (!contentType || !contentType.includes("application/json")) {
-      throw new Error("Invalid JSON response from server.");
-    }
-
-    const data = await res.json();
-    const tableBody = document.querySelector("#deliveryTable tbody");
-    tableBody.innerHTML = "";
-
-    data.forEach(d => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${d.date}</td>
-        <td>${d.slip_number}</td>
-        <td>${d.customer_name}</td>
-        <td>${d.vehicle_number || ''}</td>
-        <td>${d.product_name}</td>
-        <td>${d.vendor_name}</td>
-        <td>${d.total_sqft}</td>
-        <td>${d.rate}</td>
-        <td>${d.total_amount}</td>
-        <td><button onclick="deleteDelivery(${d.id})">Delete</button></td>
-      `;
-      tableBody.appendChild(row);
-    });
-  } catch (err) {
-    console.error("Error loading deliveries:", err);
-  }
-}
-
-// Delete delivery
-async function deleteDelivery(id) {
-  if (confirm("Delete this delivery?")) {
     try {
-      const res = await fetch(`${BASE_URL}/delivery?id=${id}`, { method: "DELETE" });
-      const result = await res.json();
-      if (result.success) loadDeliveries();
+      const response = await fetch("/api/deliveries/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("Server error:", text);
+        throw new Error(`Server returned ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Delivery saved:", result);
+      alert("✅ Delivery saved successfully!");
+
+      form.reset();
+      updateTotals();
+
     } catch (err) {
-      console.error("Error deleting delivery:", err);
+      console.error("Save error:", err);
+      alert("❌ Error saving delivery.");
     }
-  }
-}
-
-// Submit form
-document.getElementById("deliveryForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const formData = new FormData(e.target);
-  const data = Object.fromEntries(formData.entries());
-
-
-// Convert numeric fields
-data.length_ft = parseFloat(data.length_ft) || 0;
-data.width_ft = parseFloat(data.width_ft) || 0;
-data.height_ft = parseFloat(data.height_ft) || 0;
-data.total_sqft = parseFloat(document.getElementById("total_sqft").value) || 0;
-data.rate = parseFloat(data.rate) || 0;
-data.total_amount = parseFloat(document.getElementById("total_amount").value) || 0;
-
-// Ensure IDs are included
-data.customer_id = parseInt(data.customer_id) || null;
-data.vendor_id = parseInt(data.vendor_id) || null;
-data.product_id = parseInt(data.product_id) || null;
-
-// Include vehicle_number
-data.vehicle_number = data.vehicle_number?.trim() || null;
-
-
-  // Validate required fields
-  if (!data.date || !data.slip_number || !data.customer_id || !data.vendor_id || !data.product_id) {
-    alert("Please fill in all required fields (Date, Slip Number, Customer, Vendor, Product)");
-    return;
-  }
-
-  try {
-    const res = await fetch(`${BASE_URL}/api/deliveries/add`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-
-    const contentType = res.headers.get("content-type");
-
-    if (!res.ok || !contentType.includes("application/json")) {
-      const text = await res.text();
-      console.error("Unexpected response:", text);
-      throw new Error("Invalid server response.");
-    }
-
-    const result = await res.json();
-
-    if (result.success) {
-      alert("Delivery saved successfully!");
-      e.target.reset();
-      document.getElementById("total_sqft").value = "";
-      document.getElementById("total_amount").value = "";
-      loadDeliveries();
-    } else {
-      alert("Error saving delivery: " + (result.error || "Unknown error"));
-    }
-  } catch (err) {
-    console.error("Save error:", err);
-    alert("Error saving delivery: " + err.message);
-  }
-});
-
-// Event listeners
-["length_ft", "width_ft", "height_ft", "rate"].forEach(id => {
-  const element = document.getElementById(id);
-  if (element) {
-    element.addEventListener("input", calculateTotals);
-  }
-});
-
-const priceLevelSelect = document.getElementById("priceLevelSelect");
-const productSelect = document.getElementById("productSelect");
-
-if (priceLevelSelect) {
-  priceLevelSelect.addEventListener("change", updateRate);
-}
-
-if (productSelect) {
-  productSelect.addEventListener("change", updateRate);
-}
-
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-  loadDropdowns();
-  loadDeliveries();
+  });
 });
