@@ -132,5 +132,4 @@ if (document.getElementById("priceLevelSelect")) {
 if (document.getElementById("productSelect")) {
   document.getElementById("productSelect").addEventListener("change", updateRate);
 }
-
-});
+);
