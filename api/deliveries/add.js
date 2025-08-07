@@ -6,12 +6,14 @@ const pool = new Pool({
 });
 
 module.exports = async (req, res) => {
+  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    res.status(200).end();
+    return;
   }
 
   if (req.method !== 'POST') {
@@ -25,30 +27,32 @@ module.exports = async (req, res) => {
       customer_id,
       vendor_id,
       product_id,
+      price_level,
+      vehicle_number,
       length_ft,
       width_ft,
       height_ft,
-      total_sqft,
       rate,
-      total_amount,
-      vehicle_number
+      total_sqft,
+      total_amount
     } = req.body;
 
     const result = await pool.query(
       `INSERT INTO deliveries
-       (date, slip_number, customer_id, vendor_id, product_id,
-        length_ft, width_ft, height_ft, total_sqft, rate, total_amount, vehicle_number)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+        (date, slip_number, customer_id, vendor_id, product_id, price_level,
+         vehicle_number, length_ft, width_ft, height_ft, rate, total_sqft, total_amount)
+       VALUES
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
       [
-        date, slip_number, customer_id, vendor_id, product_id,
-        length_ft, width_ft, height_ft, total_sqft, rate, total_amount, vehicle_number
+        date, slip_number, customer_id, vendor_id, product_id, price_level,
+        vehicle_number, length_ft, width_ft, height_ft, rate, total_sqft, total_amount
       ]
     );
 
-    res.status(200).json({ success: true, delivery: result.rows[0] });
-  } catch (err) {
-    console.error("Insert error:", err);
-    res.status(500).json({ success: false, error: 'Internal server error' });
+    res.status(201).json({ success: true, message: "Delivery added", delivery: result.rows[0] });
+  } catch (error) {
+    console.error("❌ DB error:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
