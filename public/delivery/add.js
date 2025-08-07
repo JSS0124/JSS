@@ -28,9 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Load dropdowns
-  fetchDropdownData('customers', customerSelect);
-  fetchDropdownData('vendors', vendorSelect);
-  fetchDropdownData('products', productSelect);
+  fetch(`${BASE_URL}/customers`);
+  fetch(`${BASE_URL}/vendors`));
+  fetch(`${BASE_URL}/products`);
 
   // Auto-calculate total_sqft and total_amount
   [lengthInput, widthInput, heightInput, rateInput].forEach(input => {
