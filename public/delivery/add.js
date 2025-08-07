@@ -1,72 +1,52 @@
-async function populateDropdown(url, selectId, labelKey) {
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-    const select = document.getElementById(selectId);
-    if (!select) {
-      console.error(`❌ Select element with ID '${selectId}' not found`);
-      return;
-    }
+document.addEventListener('DOMContentLoaded', () => {
+  const BASE_URL = 'https://jss-pied.vercel.app/api';
 
-    data.forEach(item => {
-      const option = document.createElement("option");
-      option.value = item.id;
-      option.textContent = item[labelKey];
-      select.appendChild(option);
-    });
-  } catch (error) {
-    console.error(`❌ Failed to load ${selectId}:`, error);
+  async function populateDropdown(endpoint, dropdownId) {
+    try {
+      const res = await fetch(`${BASE_URL}/${endpoint}`);
+      const data = await res.json();
+      const dropdown = document.getElementById(dropdownId);
+      data.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.name;
+        dropdown.appendChild(option);
+      });
+    } catch (error) {
+      console.error(`❌ Failed to load ${endpoint}:`, error);
+    }
   }
-}
 
-// Load dropdowns
-populateDropdown("/api/customers", "customer", "customer_name");
-populateDropdown("/api/vendors", "vendor", "vendor_name");
-populateDropdown("/api/products", "product", "product_name");
+  populateDropdown('customers', 'customer');
+  populateDropdown('vendors', 'vendor');
+  populateDropdown('products', 'product');
 
-// Calculate total_sqft and total_amount
-["length_ft", "width_ft", "height_ft", "rate"].forEach(id => {
-  document.getElementById(id)?.addEventListener("input", calculateTotals);
-});
+  // ✅ Total sqft and amount calculations
+  const lengthInput = document.getElementById('length');
+  const widthInput = document.getElementById('width');
+  const heightInput = document.getElementById('height');
+  const rateInput = document.getElementById('rate');
+  const totalSqftInput = document.getElementById('total_sqft');
+  const totalAmountInput = document.getElementById('total_amount');
 
-function calculateTotals() {
-  const l = parseFloat(document.getElementById("length_ft").value) || 0;
-  const w = parseFloat(document.getElementById("width_ft").value) || 0;
-  const h = parseFloat(document.getElementById("height_ft").value) || 0;
-  const rate = parseFloat(document.getElementById("rate").value) || 0;
+  const inputs = [lengthInput, widthInput, heightInput, rateInput];
 
-  const totalSqft = l * w * h;
-  const totalAmount = totalSqft * rate;
-
-  document.getElementById("total_sqft").value = totalSqft.toFixed(2);
-  document.getElementById("total_amount").value = totalAmount.toFixed(2);
-}
-
-// Submit form
-document.getElementById("deliveryForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
-
-  const formData = new FormData(this);
-  const data = Object.fromEntries(formData.entries());
-
-  try {
-    const response = await fetch("/api/deliveries/add", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-
-    if (response.ok) {
-      alert("✅ Delivery saved successfully!");
-      this.reset();
-      document.getElementById("total_sqft").value = "";
-      document.getElementById("total_amount").value = "";
-    } else {
-      const error = await response.text();
-      alert("❌ Failed to save: " + error);
+  inputs.forEach(input => {
+    if (input) {
+      input.addEventListener('input', calculateTotals);
     }
-  } catch (err) {
-    console.error("❌ Error submitting form:", err);
-    alert("❌ Error submitting form.");
+  });
+
+  function calculateTotals() {
+    const length = parseFloat(lengthInput.value) || 0;
+    const width = parseFloat(widthInput.value) || 0;
+    const height = parseFloat(heightInput.value) || 1;
+    const rate = parseFloat(rateInput.value) || 0;
+
+    const totalSqft = length * width * height;
+    const totalAmount = totalSqft * rate;
+
+    totalSqftInput.value = totalSqft.toFixed(2);
+    totalAmountInput.value = totalAmount.toFixed(2);
   }
 });
