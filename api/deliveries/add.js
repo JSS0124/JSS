@@ -1,19 +1,42 @@
-// File: /api/deliveries/add.js
+import { sql } from '@vercel/postgres';
 
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    try {
-      const data = req.body;
+  if (req.method !== 'POST') {
+    return res.status(405).send({ message: 'Only POST requests allowed' });
+  }
 
-      // TODO: Save to database here
-      console.log('Received delivery:', data);
+  try {
+    const {
+      slip_number,
+      vehicle_number,
+      customer_id,
+      vendor_id,
+      product_id,
+      length_ft,
+      width_ft,
+      height_ft,
+      rate,
+      total_sqft,
+      total_amount,
+      notes,
+      date
+    } = req.body;
 
-      res.status(200).json({ success: true, message: 'Delivery saved successfully' });
-    } catch (error) {
-      console.error('Error saving delivery:', error);
-      res.status(500).json({ success: false, message: 'Internal server error' });
-    }
-  } else {
-    res.status(405).json({ success: false, message: 'Method Not Allowed' });
+    const result = await sql`
+      INSERT INTO deliveries (
+        slip_number, vehicle_number, customer_id, vendor_id, product_id,
+        length_ft, width_ft, height_ft, rate, total_sqft, total_amount, notes, date
+      )
+      VALUES (
+        ${slip_number}, ${vehicle_number}, ${customer_id}, ${vendor_id}, ${product_id},
+        ${length_ft}, ${width_ft}, ${height_ft}, ${rate}, ${total_sqft}, ${total_amount}, ${notes}, ${date}
+      )
+      RETURNING *;
+    `;
+
+    res.status(200).json({ message: "Delivery saved", delivery: result.rows[0] });
+  } catch (error) {
+    console.error("❌ Insert error:", error);
+    res.status(500).json({ error: "Database insert failed", details: error.message });
   }
 }
