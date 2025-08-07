@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function populateDropdown(endpoint, dropdownId) {
     try {
-      const res = await fetch(`${BASE_URL}/api/${endpoint}`);
+      const res = await fetch(`${BASE_URL}/${endpoint}`);
       const data = await res.json();
       const dropdown = document.getElementById(dropdownId);
       if (!dropdown) return;
