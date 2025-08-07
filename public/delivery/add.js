@@ -142,7 +142,7 @@ data.vehicle_number = data.vehicle_number?.trim() || null;
   }
 
   try {
-    const res = await fetch(`${BASE_URL}/delivery`, {
+    const res = await fetch(`${BASE_URL}/api/deliveries/add`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
