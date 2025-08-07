@@ -24,7 +24,7 @@ router.post('/add', async (req, res) => {
         } = req.body;
 
         const result = await pool.query(
-            INSERT INTO deliveries (
+            `INSERT INTO deliveries (
                 customer_id,
                 customer_name,
                 product_id,
@@ -41,7 +41,7 @@ router.post('/add', async (req, res) => {
                 date,
                 notes
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-            RETURNING *,
+            RETURNING *`,
             [
                 customer_id,
                 customer_name,
