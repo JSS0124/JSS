@@ -1,35 +1,54 @@
-import { sql } from '@vercel/postgres';
+const { Pool } = require('pg');
 
-export default async function handler(req, res) {
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+module.exports = async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const {
-    customer_id,
-    vendor_id,
-    product_id,
-    vehicle_number,
-    length,
-    width,
-    height,
-    rate,
-    total_sqft,
-    total_amount,
-    slip_number,
-  } = req.body;
-
   try {
-    await sql`
-      INSERT INTO deliveries 
-        (customer_id, vendor_id, product_id, vehicle_number, length, width, height, rate, total_sqft, total_amount, slip_number) 
-      VALUES 
-        (${customer_id}, ${vendor_id}, ${product_id}, ${vehicle_number}, ${length}, ${width}, ${height}, ${rate}, ${total_sqft}, ${total_amount}, ${slip_number});
-    `;
+    const {
+      date,
+      slip_number,
+      customer_id,
+      vendor_id,
+      product_id,
+      length_ft,
+      width_ft,
+      height_ft,
+      total_sqft,
+      rate,
+      total_amount,
+      vehicle_number
+    } = req.body;
 
-    return res.status(200).json({ message: 'Delivery added successfully' });
-  } catch (error) {
-    console.error('❌ DB insert error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    const result = await pool.query(
+      `INSERT INTO deliveries
+       (date, slip_number, customer_id, vendor_id, product_id,
+        length_ft, width_ft, height_ft, total_sqft, rate, total_amount, vehicle_number)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+       RETURNING *`,
+      [
+        date, slip_number, customer_id, vendor_id, product_id,
+        length_ft, width_ft, height_ft, total_sqft, rate, total_amount, vehicle_number
+      ]
+    );
+
+    res.status(200).json({ success: true, delivery: result.rows[0] });
+  } catch (err) {
+    console.error("Insert error:", err);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
-}
+};
