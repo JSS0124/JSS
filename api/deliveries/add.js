@@ -68,70 +68,73 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
-
 // File: /api/deliveries/add.js
 
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    try {
-      const data = req.body;
-
-      // Make sure all required fields are present
-      const requiredFields = [
-        'slip_number', 'vehicle_number', 'customer_id',
-        'vendor_id', 'product_id', 'length_ft', 'width_ft',
-        'height_ft', 'rate', 'total_sqft', 'total_amount', 'date'
-      ];
-
-      for (const field of requiredFields) {
-        if (!data[field]) {
-          return res.status(400).json({ error: `Missing field: ${field}` });
-        }
-      }
-
-      // Connect to your PostgreSQL DB (e.g., Neon) and insert
-      const { Pool } = require('pg');
-      const pool = new Pool({
-        connectionString: process.env.DATABASE_URL,
-        ssl: {
-          rejectUnauthorized: false,
-        },
-      });
-
-      const query = `
-        INSERT INTO deliveries (
-          slip_number, vehicle_number, customer_id, vendor_id, product_id,
-          length_ft, width_ft, height_ft, total_sqft, rate, total_amount, notes, date
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
-        RETURNING *;
-      `;
-
-      const values = [
-        data.slip_number,
-        data.vehicle_number,
-        data.customer_id,
-        data.vendor_id,
-        data.product_id,
-        data.length_ft,
-        data.width_ft,
-        data.height_ft,
-        data.total_sqft,
-        data.rate,
-        data.total_amount,
-        data.notes || '',
-        data.date,
-      ];
-
-      const result = await pool.query(query, values);
-
-      return res.status(200).json({ message: 'Delivery added successfully', delivery: result.rows[0] });
-    } catch (error) {
-      console.error('Error saving delivery:', error);
-      return res.status(500).json({ error: 'Internal Server Error' });
-    }
-  } else {
-    // Handle non-POST requests
+  if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
-}
 
+  try {
+    const data = req.body;
+
+    // Validate required fields
+    const requiredFields = [
+      'slip_number', 'vehicle_number', 'customer_id',
+      'vendor_id', 'product_id', 'length_ft', 'width_ft',
+      'height_ft', 'rate', 'total_sqft', 'total_amount', 'date'
+    ];
+
+    for (const field of requiredFields) {
+      if (!data[field]) {
+        return res.status(400).json({ error: `Missing field: ${field}` });
+      }
+    }
+
+    // Use dynamic import for pg (for Vercel compatibility)
+    const { Pool } = await import('pg');
+
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    const query = `
+      INSERT INTO deliveries (
+        slip_number, vehicle_number, customer_id, vendor_id, product_id,
+        length_ft, width_ft, height_ft, total_sqft, rate, total_amount, notes, date
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+      RETURNING *;
+    `;
+
+    const values = [
+      data.slip_number,
+      data.vehicle_number,
+      data.customer_id,
+      data.vendor_id,
+      data.product_id,
+      data.length_ft,
+      data.width_ft,
+      data.height_ft,
+      data.total_sqft,
+      data.rate,
+      data.total_amount,
+      data.notes || '',
+      data.date,
+    ];
+
+    const result = await pool.query(query, values);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Delivery added successfully',
+      delivery: result.rows[0]
+    });
+
+  } catch (err) {
+    console.error('Error saving delivery:', err);
+    return res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+}
