@@ -1,75 +1,89 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("deliveryForm");
+document.addEventListener('DOMContentLoaded', () => {
+  const BASE_URL = 'https://jss-pied.vercel.app';
 
-  const lengthInput = document.getElementById("length_ft");
-  const widthInput = document.getElementById("width_ft");
-  const heightInput = document.getElementById("height_ft");
-  const totalSqftInput = document.getElementById("total_sqft");
-  const rateInput = document.getElementById("rate");
-  const totalAmountInput = document.getElementById("total_amount");
-
-  // Auto-calc Total Sqft & Total Amount
-  function updateTotals() {
-    const l = parseFloat(lengthInput.value) || 0;
-    const w = parseFloat(widthInput.value) || 0;
-    const h = parseFloat(heightInput.value) || 0;
-    const sqft = l * w * h;
-    totalSqftInput.value = sqft.toFixed(2);
-
-    const rate = parseFloat(rateInput.value) || 0;
-    totalAmountInput.value = (sqft * rate).toFixed(2);
-  }
-
-  [lengthInput, widthInput, heightInput, rateInput].forEach(el => {
-    el.addEventListener("input", updateTotals);
-  });
-
-  // Populate dropdowns
-  async function populateSelect(id, endpoint, valueKey = "id", textKey = "name") {
-    const select = document.getElementById(id);
+  async function populateDropdown(endpoint, dropdownId) {
     try {
-      const res = await fetch(endpoint);
+      const res = await fetch(`${BASE_URL}/${endpoint}`);
       const data = await res.json();
-      select.innerHTML = `<option value="">Select</option>`;
+      const dropdown = document.getElementById(dropdownId);
+      if (!dropdown) return;
+
       data.forEach(item => {
-        const opt = document.createElement("option");
-        opt.value = item[valueKey];
-        opt.textContent = item[textKey];
-        select.appendChild(opt);
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.name;
+        dropdown.appendChild(option);
       });
-    } catch (err) {
-      console.error(`Error loading ${id}:`, err);
+    } catch (error) {
+      console.error(`❌ Failed to load ${endpoint}:`, error);
     }
   }
 
-  populateSelect("customer", "/api/customers", "id", "name");
-  populateSelect("vendor", "/api/vendors", "id", "name");
-  populateSelect("product", "/api/products", "id", "name");
+  populateDropdown('customers', 'customer');
+  populateDropdown('vendors', 'vendor');
+  populateDropdown('products', 'product');
 
-  // Handle form submit
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const formData = Object.fromEntries(new FormData(form).entries());
+  const lengthInput = document.getElementById('length_ft');
+  const widthInput = document.getElementById('width_ft');
+  const heightInput = document.getElementById('height_ft');
+  const rateInput = document.getElementById('rate');
+  const totalSqftInput = document.getElementById('total_sqft');
+  const totalAmountInput = document.getElementById('total_amount');
 
-    try {
-      const res = await fetch("/api/deliveries/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
+  function calculateTotals() {
+    const length = parseFloat(lengthInput.value) || 0;
+    const width = parseFloat(widthInput.value) || 0;
+    const height = parseFloat(heightInput.value) || 1;
+    const rate = parseFloat(rateInput.value) || 0;
 
-      if (res.ok) {
-        alert("Delivery saved successfully!");
-        form.reset();
-        totalSqftInput.value = "";
-        totalAmountInput.value = "";
-      } else {
-        alert(`Error: ${data.error || "Unknown error"}`);
-      }
-    } catch (err) {
-      console.error("Submit error:", err);
-      alert("Failed to save delivery.");
-    }
+    const totalSqft = length * width * height;
+    const totalAmount = totalSqft * rate;
+
+    totalSqftInput.value = totalSqft.toFixed(2);
+    totalAmountInput.value = totalAmount.toFixed(2);
+  }
+
+  [lengthInput, widthInput, heightInput, rateInput].forEach(input => {
+    input.addEventListener('input', calculateTotals);
   });
+
+  // Submit form
+  const form = document.getElementById('deliveryForm');
+ form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const payload = {
+    customer: customerInput.value,
+    vendor: vendorInput.value,
+    product: productInput.value,
+    vehicleNumber: vehicleNumberInput.value,
+    length: parseFloat(lengthInput.value),
+    width: parseFloat(widthInput.value),
+    height: parseFloat(heightInput.value),
+    rate: parseFloat(rateInput.value),
+    totalSqft: parseFloat(totalSqftInput.value),
+    totalAmount: parseFloat(totalAmountInput.value),
+  };
+
+  try {
+    const res = await fetch(`${BASE_URL}/api/deliveries/add`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.error || 'Unknown error');
+    }
+
+    alert('✅ Delivery saved successfully!');
+    window.location.href = '/delivery/edit.html'; // Redirect to the listing page
+  } catch (error) {
+    console.error('❌ Save error:', error);
+    alert('Failed to save delivery. See console for details.');
+  }
 });
