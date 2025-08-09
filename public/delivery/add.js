@@ -1,89 +1,36 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const BASE_URL = 'https://jss-pied.vercel.app';
+document.getElementById("addDeliveryForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-  async function populateDropdown(endpoint, dropdownId) {
+    const deliveryData = {
+        customer: document.getElementById("customer").value.trim(),
+        product: document.getElementById("product").value.trim(),
+        quantity: parseInt(document.getElementById("quantity").value, 10),
+        deliveryDate: document.getElementById("deliveryDate").value.trim(),
+        status: document.getElementById("status").value.trim()
+    };
+
+    // Basic validation before sending
+    if (!deliveryData.customer || !deliveryData.product || isNaN(deliveryData.quantity) || !deliveryData.deliveryDate) {
+        alert("Please fill in all required fields with valid values.");
+        return;
+    }
+
     try {
-      const res = await fetch(`${BASE_URL}/${endpoint}`);
-      const data = await res.json();
-      const dropdown = document.getElementById(dropdownId);
-      if (!dropdown) return;
+        const response = await fetch("/api/deliveries/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(deliveryData)
+        });
 
-      data.forEach(item => {
-        const option = document.createElement('option');
-        option.value = item.id;
-        option.textContent = item.name;
-        dropdown.appendChild(option);
-      });
-    } catch (error) {
-      console.error(`❌ Failed to load ${endpoint}:`, error);
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(errText || "Server error");
+        }
+
+        alert("Delivery added successfully!");
+        window.location.href = "/delivery/delivery.html";
+    } catch (err) {
+        console.error("Error adding delivery:", err);
+        alert("Failed to add delivery. See console for details.");
     }
-  }
-
-  populateDropdown('customers', 'customer');
-  populateDropdown('vendors', 'vendor');
-  populateDropdown('products', 'product');
-
-  const lengthInput = document.getElementById('length_ft');
-  const widthInput = document.getElementById('width_ft');
-  const heightInput = document.getElementById('height_ft');
-  const rateInput = document.getElementById('rate');
-  const totalSqftInput = document.getElementById('total_sqft');
-  const totalAmountInput = document.getElementById('total_amount');
-
-  function calculateTotals() {
-    const length = parseFloat(lengthInput.value) || 0;
-    const width = parseFloat(widthInput.value) || 0;
-    const height = parseFloat(heightInput.value) || 1;
-    const rate = parseFloat(rateInput.value) || 0;
-
-    const totalSqft = length * width * height;
-    const totalAmount = totalSqft * rate;
-
-    totalSqftInput.value = totalSqft.toFixed(2);
-    totalAmountInput.value = totalAmount.toFixed(2);
-  }
-
-  [lengthInput, widthInput, heightInput, rateInput].forEach(input => {
-    input.addEventListener('input', calculateTotals);
-  });
-
-  // Submit form
-  const form = document.getElementById('deliveryForm');
- form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const payload = {
-    customer: customerInput.value,
-    vendor: vendorInput.value,
-    product: productInput.value,
-    vehicleNumber: vehicleNumberInput.value,
-    length: parseFloat(lengthInput.value),
-    width: parseFloat(widthInput.value),
-    height: parseFloat(heightInput.value),
-    rate: parseFloat(rateInput.value),
-    totalSqft: parseFloat(totalSqftInput.value),
-    totalAmount: parseFloat(totalAmountInput.value),
-  };
-
-  try {
-    const res = await fetch(`${BASE_URL}/api/deliveries/add`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      throw new Error(result.error || 'Unknown error');
-    }
-
-    alert('✅ Delivery saved successfully!');
-    window.location.href = '/delivery/edit.html'; // Redirect to the listing page
-  } catch (error) {
-    console.error('❌ Save error:', error);
-    alert('Failed to save delivery. See console for details.');
-  }
 });
