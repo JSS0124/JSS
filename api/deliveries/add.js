@@ -7,32 +7,33 @@ const pool = new Pool({
 
 module.exports = async (req, res) => {
     if (req.method !== "POST") {
-        res.status(405).send("Method Not Allowed");
-        return;
+        return res.status(405).send("Method Not Allowed");
     }
 
-    let data;
-    try {
-        data = req.body;
-        if (!data || typeof data !== "object") {
-            return res.status(400).json({ error: "Invalid request body" });
-        }
-    } catch {
-        return res.status(400).json({ error: "Invalid JSON" });
-    }
+    const {
+        date, slipNumber, vehicleNumber, customer, vendor,
+        product, foot, az, size, totalSqft,
+        rate, totalAmount, remarks
+    } = req.body || {};
 
-    const { customer, product, quantity, deliveryDate, status } = data;
-    if (!customer || !product || !quantity || !deliveryDate) {
+    if (!date || !customer || !product) {
         return res.status(400).json({ error: "Missing required fields" });
     }
 
     try {
         const query = `
-            INSERT INTO deliveries (customer, product, quantity, delivery_date, status)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO deliveries (
+                date, slip_number, vehicle_number, customer, vendor, product, foot, az, size,
+                total_sqft, rate, total_amount, remarks
+            )
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
             RETURNING id
         `;
-        const values = [customer, product, quantity, deliveryDate, status || "Pending"];
+        const values = [
+            date, slipNumber, vehicleNumber, customer, vendor,
+            product, foot, az, size, totalSqft,
+            rate, totalAmount, remarks
+        ];
 
         const result = await pool.query(query, values);
         res.status(200).json({ message: "Delivery added", id: result.rows[0].id });
