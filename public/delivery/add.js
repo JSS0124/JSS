@@ -1,44 +1,75 @@
-document.getElementById("addDeliveryForm").addEventListener("submit", async (event) => {
-    event.preventDefault();
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("deliveryForm");
 
-    const deliveryData = {
-        date: document.getElementById("date").value,
-        slipNumber: document.getElementById("slipNumber").value.trim(),
-        vehicleNumber: document.getElementById("vehicleNumber").value.trim(),
-        customer: document.getElementById("customer").value.trim(),
-        vendor: document.getElementById("vendor").value.trim(),
-        product: document.getElementById("product").value.trim(),
-        foot: document.getElementById("foot").value.trim(),
-        az: document.getElementById("az").value.trim(),
-        size: document.getElementById("size").value.trim(),
-        totalSqft: document.getElementById("totalSqft").value.trim(),
-        rate: document.getElementById("rate").value.trim(),
-        totalAmount: document.getElementById("totalAmount").value.trim(),
-        remarks: document.getElementById("remarks").value.trim()
-    };
+  const lengthInput = document.getElementById("length_ft");
+  const widthInput = document.getElementById("width_ft");
+  const heightInput = document.getElementById("height_ft");
+  const totalSqftInput = document.getElementById("total_sqft");
+  const rateInput = document.getElementById("rate");
+  const totalAmountInput = document.getElementById("total_amount");
 
-    // Basic validation
-    if (!deliveryData.date || !deliveryData.customer || !deliveryData.product) {
-        alert("Please fill in required fields: Date, Customer, and Product.");
-        return;
+  // Auto-calc Total Sqft & Total Amount
+  function updateTotals() {
+    const l = parseFloat(lengthInput.value) || 0;
+    const w = parseFloat(widthInput.value) || 0;
+    const h = parseFloat(heightInput.value) || 0;
+    const sqft = l * w * h;
+    totalSqftInput.value = sqft.toFixed(2);
+
+    const rate = parseFloat(rateInput.value) || 0;
+    totalAmountInput.value = (sqft * rate).toFixed(2);
+  }
+
+  [lengthInput, widthInput, heightInput, rateInput].forEach(el => {
+    el.addEventListener("input", updateTotals);
+  });
+
+  // Populate dropdowns
+  async function populateSelect(id, endpoint, valueKey = "id", textKey = "name") {
+    const select = document.getElementById(id);
+    try {
+      const res = await fetch(endpoint);
+      const data = await res.json();
+      select.innerHTML = `<option value="">Select</option>`;
+      data.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item[valueKey];
+        opt.textContent = item[textKey];
+        select.appendChild(opt);
+      });
+    } catch (err) {
+      console.error(`Error loading ${id}:`, err);
     }
+  }
+
+  populateSelect("customer", "/api/customers", "id", "name");
+  populateSelect("vendor", "/api/vendors", "id", "name");
+  populateSelect("product", "/api/products", "id", "name");
+
+  // Handle form submit
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = Object.fromEntries(new FormData(form).entries());
 
     try {
-        const response = await fetch("/api/deliveries/add", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(deliveryData)
-        });
+      const res = await fetch("/api/deliveries/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
 
-        if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(errText || "Server error");
-        }
-
-        alert("Delivery added successfully!");
-        window.location.href = "/delivery/delivery.html";
+      if (res.ok) {
+        alert("Delivery saved successfully!");
+        form.reset();
+        totalSqftInput.value = "";
+        totalAmountInput.value = "";
+      } else {
+        alert(`Error: ${data.error || "Unknown error"}`);
+      }
     } catch (err) {
-        console.error("Error adding delivery:", err);
-        alert("Failed to add delivery. See console for details.");
+      console.error("Submit error:", err);
+      alert("Failed to save delivery.");
     }
+  });
 });
