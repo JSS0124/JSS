@@ -1,1 +1,89 @@
+/* CSS Variables for consistency */
+:root {
+  --primary-color: #007bff;
+  --background-color: #f3f3f3;
+  --card-bg: #fff;
+  --border-color: #ddd;
+  --shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  --text-color: #222;
+  --hover-bg: #e9f2ff;
+  --spacing: 2rem;
+  --border-radius: 10px;
+}
 
+body {
+  font-family: Arial, sans-serif;
+  background: var(--background-color);
+  margin: 0;
+  padding: var(--spacing);
+}
+
+.dashboard {
+  max-width: 1100px;
+  margin: auto;
+  background: var(--card-bg);
+  padding: var(--spacing);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+
+.dashboard h1 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: var(--spacing);
+  color: var(--text-color);
+}
+
+.main-menu {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing);
+}
+
+.menu-column {
+  flex: 1 1 180px;
+  margin: 1rem;
+  background: #fafafa;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+}
+
+.menu-column h3 {
+  text-align: center;
+  background: var(--primary-color);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.menu-column ul {
+  list-style: none;
+  padding: 0;
+}
+
+.menu-column ul li {
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+}
+
+.menu-column ul li a {
+  text-decoration: none;
+  color: var(--text-color);
+  display: block;
+}
+
+.menu-column ul li:hover {
+  background-color: var(--hover-bg);
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .main-menu {
+    flex-direction: column;
+  }
+}
