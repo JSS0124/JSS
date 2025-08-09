@@ -1,44 +1,49 @@
-const { Pool } = require("pg");
+import { Pool } from 'pg';
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
-module.exports = async (req, res) => {
-    if (req.method !== "POST") {
-        return res.status(405).send("Method Not Allowed");
-    }
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
+  try {
     const {
-        date, slipNumber, vehicleNumber, customer, vendor,
-        product, foot, az, size, totalSqft,
-        rate, totalAmount, remarks
-    } = req.body || {};
+      customer,
+      vendor,
+      product,
+      vehicleNumber,
+      length,
+      width,
+      height,
+      rate,
+      totalSqft,
+      totalAmount,
+    } = req.body;
 
-    if (!date || !customer || !product) {
-        return res.status(400).json({ error: "Missing required fields" });
-    }
+    const query = `
+      INSERT INTO deliveries (
+        customer, vendor, product, vehicle_number,
+        length, width, height, rate, total_sqft, total_amount
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      RETURNING *;
+    `;
 
-    try {
-        const query = `
-            INSERT INTO deliveries (
-                date, slip_number, vehicle_number, customer, vendor, product, foot, az, size,
-                total_sqft, rate, total_amount, remarks
-            )
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
-            RETURNING id
-        `;
-        const values = [
-            date, slipNumber, vehicleNumber, customer, vendor,
-            product, foot, az, size, totalSqft,
-            rate, totalAmount, remarks
-        ];
+    const values = [
+      customer, vendor, product, vehicleNumber,
+      length, width, height, rate, totalSqft, totalAmount
+    ];
 
-        const result = await pool.query(query, values);
-        res.status(200).json({ message: "Delivery added", id: result.rows[0].id });
-    } catch (err) {
-        console.error("Database error:", err);
-        res.status(500).json({ error: "Database insert failed" });
-    }
-};
+    const result = await pool.query(query, values);
+
+    res.status(200).json({ message: 'Delivery saved', delivery: result.rows[0] });
+  } catch (error) {
+    console.error('❌ Database error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
