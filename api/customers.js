@@ -1,68 +1,84 @@
-const { Pool } = require('pg');
+const { Pool } = require("pg");
+const winston = require("winston");
+
+// Logger setup
+const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.json(),
+  transports: [new winston.transports.File({ filename: "error.log", level: "error" })],
+});
 
 // Database connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
 
-module.exports = async (req, res) => {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+// Response format
+const sendResponse = (res, status, data, error = null, message = null) => {
+  res.status(status).json({ data, error, message });
+};
 
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+module.exports = async (req, res) => {
+  // CORS headers
+  res.setHeader("Access-Control-Allow-Origin", process.env.FRONTEND_URL || "http://localhost:3000");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return sendResponse(res, 200, null, null, "OK");
   }
 
   try {
-    if (req.method === 'GET') {
-      // Get all customers
-      const result = await pool.query('SELECT * FROM customers ORDER BY name');
-      res.status(200).json(result.rows);
-    } else if (req.method === 'POST') {
-      // Create new customer
-      const { name, contact_person, phone, email, address, gst_number } = req.body;
-      
-      const result = await pool.query(
-        'INSERT INTO customers (name, contact_person, phone, email, address, gst_number) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-        [name, contact_person, phone, email, address, gst_number]
-      );
-      
-      res.status(201).json(result.rows[0]);
-    } else if (req.method === 'PUT') {
-      // Update customer
-      const { id, name, contact_person, phone, email, address, gst_number } = req.body;
-      
-      const result = await pool.query(
-        'UPDATE customers SET name = $1, contact_person = $2, phone = $3, email = $4, address = $5, gst_number = $6 WHERE id = $7 RETURNING *',
-        [name, contact_person, phone, email, address, gst_number, id]
-      );
-      
-      if (result.rows.length === 0) {
-        res.status(404).json({ error: 'Customer not found' });
-      } else {
-        res.status(200).json(result.rows[0]);
+    if (req.method === "GET") {
+      const result = await pool.query("SELECT * FROM customers ORDER BY name");
+      sendResponse(res, 200, result.rows);
+    } else if (req.method === "POST") {
+      const { name, contact_person, contact_number, client_type, address, price_level } = req.body;
+
+      if (!name) {
+        return sendResponse(res, 400, null, "Customer name is required");
       }
-    } else if (req.method === 'DELETE') {
-      // Delete customer
+
+      const result = await pool.query(
+        "INSERT INTO customers (name, contact_person, contact_number, client_type, address, price_level) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+        [name, contact_person, contact_number, client_type, address, price_level]
+      );
+      sendResponse(res, 201, result.rows[0], null, "Customer created successfully");
+    } else if (req.method === "PUT") {
+      const { id, name, contact_person, contact_number, client_type, address, price_level } = req.body;
+
+      if (!id || !name) {
+        return sendResponse(res, 400, null, "ID and name are required");
+      }
+
+      const result = await pool.query(
+        "UPDATE customers SET name = $1, contact_person = $2, contact_number = $3, client_type = $4, address = $5, price_level = $6 WHERE id = $7 RETURNING *",
+        [name, contact_person, contact_number, client_type, address, price_level, id]
+      );
+
+      if (result.rows.length === 0) {
+        return sendResponse(res, 404, null, "Customer not found");
+      }
+      sendResponse(res, 200, result.rows[0], null, "Customer updated successfully");
+    } else if (req.method === "DELETE") {
       const { id } = req.query;
-      
-      const result = await pool.query('DELETE FROM customers WHERE id = $1 RETURNING *', [id]);
-      
-      if (result.rows.length === 0) {
-        res.status(404).json({ error: 'Customer not found' });
-      } else {
-        res.status(200).json({ message: 'Customer deleted successfully' });
+
+      if (!id) {
+        return sendResponse(res, 400, null, "Customer ID is required");
       }
+
+      const result = await pool.query("DELETE FROM customers WHERE id = $1 RETURNING *", [id]);
+
+      if (result.rows.length === 0) {
+        return sendResponse(res, 404, null, "Customer not found");
+      }
+      sendResponse(res, 200, null, null, "Customer deleted successfully");
     } else {
-      res.status(405).json({ error: 'Method not allowed' });
+      sendResponse(res, 405, null, "Method not allowed");
     }
   } catch (error) {
-    console.error('Database error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    logger.error("Database error:", error);
+    sendResponse(res, 500, null, "Internal server error");
   }
 };
-
