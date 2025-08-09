@@ -1,49 +1,43 @@
-import { Pool } from 'pg';
+const { Pool } = require("pg");
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
 });
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+module.exports = async (req, res) => {
+    if (req.method !== "POST") {
+        res.status(405).send("Method Not Allowed");
+        return;
+    }
 
-  try {
-    const {
-      customer,
-      vendor,
-      product,
-      vehicleNumber,
-      length,
-      width,
-      height,
-      rate,
-      totalSqft,
-      totalAmount,
-    } = req.body;
+    let data;
+    try {
+        data = req.body;
+        if (!data || typeof data !== "object") {
+            return res.status(400).json({ error: "Invalid request body" });
+        }
+    } catch {
+        return res.status(400).json({ error: "Invalid JSON" });
+    }
 
-    const query = `
-      INSERT INTO deliveries (
-        customer, vendor, product, vehicle_number,
-        length, width, height, rate, total_sqft, total_amount
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-      RETURNING *;
-    `;
+    const { customer, product, quantity, deliveryDate, status } = data;
+    if (!customer || !product || !quantity || !deliveryDate) {
+        return res.status(400).json({ error: "Missing required fields" });
+    }
 
-    const values = [
-      customer, vendor, product, vehicleNumber,
-      length, width, height, rate, totalSqft, totalAmount
-    ];
+    try {
+        const query = `
+            INSERT INTO deliveries (customer, product, quantity, delivery_date, status)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING id
+        `;
+        const values = [customer, product, quantity, deliveryDate, status || "Pending"];
 
-    const result = await pool.query(query, values);
-
-    res.status(200).json({ message: 'Delivery saved', delivery: result.rows[0] });
-  } catch (error) {
-    console.error('❌ Database error:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-}
+        const result = await pool.query(query, values);
+        res.status(200).json({ message: "Delivery added", id: result.rows[0].id });
+    } catch (err) {
+        console.error("Database error:", err);
+        res.status(500).json({ error: "Database insert failed" });
+    }
+};
