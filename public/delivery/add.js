@@ -2,16 +2,24 @@ document.getElementById("addDeliveryForm").addEventListener("submit", async (eve
     event.preventDefault();
 
     const deliveryData = {
+        date: document.getElementById("date").value,
+        slipNumber: document.getElementById("slipNumber").value.trim(),
+        vehicleNumber: document.getElementById("vehicleNumber").value.trim(),
         customer: document.getElementById("customer").value.trim(),
+        vendor: document.getElementById("vendor").value.trim(),
         product: document.getElementById("product").value.trim(),
-        quantity: parseInt(document.getElementById("quantity").value, 10),
-        deliveryDate: document.getElementById("deliveryDate").value.trim(),
-        status: document.getElementById("status").value.trim()
+        foot: document.getElementById("foot").value.trim(),
+        az: document.getElementById("az").value.trim(),
+        size: document.getElementById("size").value.trim(),
+        totalSqft: document.getElementById("totalSqft").value.trim(),
+        rate: document.getElementById("rate").value.trim(),
+        totalAmount: document.getElementById("totalAmount").value.trim(),
+        remarks: document.getElementById("remarks").value.trim()
     };
 
-    // Basic validation before sending
-    if (!deliveryData.customer || !deliveryData.product || isNaN(deliveryData.quantity) || !deliveryData.deliveryDate) {
-        alert("Please fill in all required fields with valid values.");
+    // Basic validation
+    if (!deliveryData.date || !deliveryData.customer || !deliveryData.product) {
+        alert("Please fill in required fields: Date, Customer, and Product.");
         return;
     }
 
